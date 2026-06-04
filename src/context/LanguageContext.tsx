@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 type Language = "en" | "vi";
 
@@ -16,6 +16,12 @@ const dictionaries: Record<Language, Dictionary> = {
     quarterFinals: "Quarter-finals",
     semiFinals: "Semi-finals",
     final: "Final",
+    waitingForTeams: "Waiting for qualifying teams...",
+    resetBracket: "Reset Bracket",
+    winner: "Winner",
+    select: "select",
+    champion: "Champion",
+    predictWinner: "Predict the Winner",
   },
   vi: {
     groupStage: "Giai đoạn bảng",
@@ -26,6 +32,12 @@ const dictionaries: Record<Language, Dictionary> = {
     quarterFinals: "Tứ kết",
     semiFinals: "Bán kết",
     final: "Chung kết",
+    waitingForTeams: "Đang chờ các đội đủ điều kiện...",
+    resetBracket: "Đặt lại bảng",
+    winner: "Người thắng",
+    select: "chọn",
+    champion: "Nhà vô địch",
+    predictWinner: "Dự đoán người thắng",
   },
 };
 
@@ -43,6 +55,21 @@ export const LanguageProvider = ({
   children: ReactNode;
 }) => {
   const [language, setLanguage] = useState<Language>("en");
+
+  // Load saved language from localStorage on mount
+  useEffect(() => {
+    const saved = typeof window !== "undefined" ? localStorage.getItem("language") : null;
+    if (saved === "en" || saved === "vi") {
+      setLanguage(saved);
+    }
+  }, []);
+
+  // Persist language changes
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("language", language);
+    }
+  }, [language]);
 
   const t = (key: keyof typeof dictionaries["en"]) => {
     return dictionaries[language][key] || key;
