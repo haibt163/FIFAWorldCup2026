@@ -80,3 +80,14 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 5. Implement champion determination logic
 6. Add user controls for manual match simulation
 7. Create tournament progress tracking
+
+### Resumption Notes:
+- **Next Priority**: Create `src/components/GroupStage.tsx` - this component is missing but referenced in `page.tsx`. It should:
+  - Display all 12 groups (A-L) in a responsive grid
+  - Show team standings for each group with points, goal difference, and goals scored
+  - Include "Simulate All" button to auto-run all group matches
+  - Call `onComplete` callback with 32 qualifying teams (top 2 + 8 best 3rd-place)
+- **Data Fix Required**: Replace duplicate team names in `src/data/teams.ts` with unique 48 teams. Current data has 8 teams repeated 6 times each.
+- **Integration Point**: `page.tsx` already has the structure to handle `qualifyingTeams` state and conditionally render `KnockoutBracket` - just need the GroupStage component to feed it data.
+- **State Flow**: GroupStage → calculate standings → getTopTeams() → pass 32 teams to page.tsx → KnockoutBracket receives teams and initializes bracket.
+- **No localStorage yet**: Persistence layer mentioned in requirements but not yet implemented - can be added after core functionality works.
