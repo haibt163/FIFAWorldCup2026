@@ -49,35 +49,34 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 
 ## Current Implementation State & Checkpoint
 
-### Files Created/Modified:
+### Files in Codebase:
 - **Configuration:** `.gitignore`, `package.json`, `tsconfig.json`, `next.config.ts`, `eslint.config.mjs`, `postcss.config.mjs`
 - **Core App:** `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/globals.css`
-- **Components:** `src/components/KnockoutBracket.tsx`
+- **Components:** `src/components/KnockoutBracket.tsx` (exists), `src/components/GroupStage.tsx` (MISSING)
 - **Context:** `src/context/LanguageContext.tsx`
 - **Data:** `src/data/teams.ts`
 - **Utilities:** `src/utils/simulator.ts`
 
 ### Working Features:
-- ✅ **3rd-Place Calculations**: Implemented logic to identify and rank the 8 best 3rd-place teams across all 12 groups using proper tie-breaking (points → goal difference → goals scored)
 - ✅ **Language Context**: Fully functional bilingual system supporting English and Vietnamese with dynamic UI string switching
-- ✅ **Team Data**: Complete 48-team dataset with group assignments and strength ratings
+- ✅ **Team Data**: 48-team dataset with group assignments and strength ratings (note: contains duplicate team names across groups that need fixing)
 - ✅ **Match Simulation**: Core simulation engine with probabilistic match outcomes and proper point allocation
 - ✅ **Group Standings**: Dynamic calculation and sorting of group tables with all tie-breaking criteria
-- ✅ **Local Storage**: Persistent state management for user preferences and simulation results
+- ✅ **Knockout Bracket Component**: Complete component with match rendering, winner selection, and champion display
 
 ### Current Development Status:
-- **Next Steps**: Need to implement the knockout bracket visualization component that displays the Round of 32 matches
-- **Integration**: Connect the calculated top 2 teams + 8 best 3rd-place teams to populate the knockout stage
+- **Missing Component**: `src/components/GroupStage.tsx` is referenced in `page.tsx` but does not exist - needs to be created
+- **Team Data Issue**: `src/data/teams.ts` has duplicate team names (Brazil, Germany, Spain, France, etc.) across multiple groups - needs unique team data
+- **Integration Needed**: Connect GroupStage to KnockoutBracket to pass qualifying teams
 - **UI Polish**: Add visual indicators for match completion and champion determination
 - **User Interaction**: Implement "Simulate All" functionality for group stage matches
 - **Responsive Design**: Ensure knockout bracket layout works on mobile devices
 
 ### Pending Tasks:
-1. Complete knockout bracket rendering with proper match pairing
-2. Add match result persistence and display
-3. Implement champion determination logic
-4. Add user controls for manual match simulation
-5. Create tournament progress tracking
-
-### Missing Files:
-- **Note**: `src/components/GroupStage.tsx` is referenced in the implementation but not yet added to the chat. This component is crucial for the group stage interface and should be added to complete the implementation.
+1. Create `src/components/GroupStage.tsx` component
+2. Fix team data in `src/data/teams.ts` to have unique teams
+3. Connect GroupStage to KnockoutBracket with proper team passing
+4. Add match result persistence and display
+5. Implement champion determination logic
+6. Add user controls for manual match simulation
+7. Create tournament progress tracking
