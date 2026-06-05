@@ -1,4 +1,5 @@
 export type Team = {
+  id: string;
   name: string;
   country: string;
   flag: string; // URL or emoji placeholder
@@ -9,74 +10,74 @@ export type Team = {
 
 export const teams: Team[] = [
   // Group A
-  { name: "Brazil", country: "Brazil", flag: "🇧🇷", group: "A", ranking: 1, strength: 95 },
-  { name: "Germany", country: "Germany", flag: "🇩🇪", group: "A", ranking: 2, strength: 92 },
-  { name: "Spain", country: "Spain", flag: "🇪🇸", group: "A", ranking: 3, strength: 90 },
-  { name: "France", country: "France", flag: "🇫🇷", group: "A", ranking: 4, strength: 89 },
+  { id: "mex", name: "Mexico", country: "Mexico", flag: "🇲🇽", group: "A", ranking: 16, strength: 82 },
+  { id: "rsa", name: "South Africa", country: "South Africa", flag: "🇿🇦", group: "A", ranking: 59, strength: 72 },
+  { id: "kor", name: "South Korea", country: "South Korea", flag: "🇰🇷", group: "A", ranking: 22, strength: 80 },
+  { id: "cze", name: "Czech Republic", country: "Czech Republic", flag: "🇨🇿", group: "A", ranking: 45, strength: 76 },
 
   // Group B
-  { name: "Argentina", country: "Argentina", flag: "🇦🇷", group: "B", ranking: 5, strength: 88 },
-  { name: "England", country: "England", flag: "🇬🇧", group: "B", ranking: 6, strength: 87 },
-  { name: "Italy", country: "Italy", flag: "🇮🇹", group: "B", ranking: 7, strength: 85 },
-  { name: "Netherlands", country: "Netherlands", flag: "🇳🇱", group: "B", ranking: 8, strength: 84 },
+  { id: "can", name: "Canada", country: "Canada", flag: "🇨🇦", group: "B", ranking: 35, strength: 77 },
+  { id: "bih", name: "Bosnia and Herzegovina", country: "Bosnia and Herzegovina", flag: "🇧🇦", group: "B", ranking: 85, strength: 70 },
+  { id: "qat", name: "Qatar", country: "Qatar", flag: "🇶🇦", group: "B", ranking: 46, strength: 74 },
+  { id: "sui", name: "Switzerland", country: "Switzerland", flag: "🇨🇭", group: "B", ranking: 11, strength: 85 },
 
   // Group C
-  { name: "Portugal", country: "Portugal", flag: "🇵🇹", group: "C", ranking: 9, strength: 83 },
-  { name: "Belgium", country: "Belgium", flag: "🇧🇪", group: "C", ranking: 10, strength: 82 },
-  { name: "Croatia", country: "Croatia", flag: "🇭🇷", group: "C", ranking: 11, strength: 80 },
-  { name: "Switzerland", country: "Switzerland", flag: "🇨🇭", group: "C", ranking: 12, strength: 79 },
+  { id: "bra", name: "Brazil", country: "Brazil", flag: "🇧🇷", group: "C", ranking: 5, strength: 94 },
+  { id: "mar", name: "Morocco", country: "Morocco", flag: "🇲🇦", group: "C", ranking: 13, strength: 84 },
+  { id: "hai", name: "Haiti", country: "Haiti", flag: "🇭🇹", group: "C", ranking: 102, strength: 62 },
+  { id: "sco", name: "Scotland", country: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", group: "C", ranking: 52, strength: 75 },
 
   // Group D
-  { name: "USA", country: "USA", flag: "🇺🇸", group: "D", ranking: 13, strength: 78 },
-  { name: "Mexico", country: "Mexico", flag: "🇲🇽", group: "D", ranking: 14, strength: 77 },
-  { name: "Japan", country: "Japan", flag: "🇯🇵", group: "D", ranking: 15, strength: 76 },
-  { name: "South Korea", country: "South Korea", flag: "🇰🇷", group: "D", ranking: 16, strength: 75 },
+  { id: "usa", name: "United States", country: "USA", flag: "🇺🇸", group: "D", ranking: 11, strength: 86 },
+  { id: "par", name: "Paraguay", country: "Paraguay", flag: "🇵🇾", group: "D", ranking: 48, strength: 76 },
+  { id: "aus", name: "Australia", country: "Australia", flag: "🇦🇺", group: "D", ranking: 24, strength: 79 },
+  { id: "tur", name: "Tükiye", country: "Tükiye", flag: "🇹🇷", group: "D", ranking: 26, strength: 81 },
 
   // Group E
-  { name: "Brazil", country: "Brazil", flag: "🇧🇷", group: "E", ranking: 17, strength: 74 },
-  { name: "Germany", country: "Germany", flag: "🇩🇪", group: "E", ranking: 18, strength: 73 },
-  { name: "Spain", country: "Spain", flag: "🇪🇸", group: "E", ranking: 19, strength: 72 },
-  { name: "France", country: "France", flag: "🇫🇷", group: "E", ranking: 20, strength: 71 },
+  { id: "ger", name: "Germany", country: "Germany", flag: "🇩🇪", group: "E", ranking: 14, strength: 91 },
+  { id: "cur", name: "Curaçao", country: "Curaçao", flag: "🇨🇼", group: "E", ranking: 72, strength: 68 },
+  { id: "civ", name: "Ivory Coast", country: "Ivory Coast", flag: "🇨🇮", group: "E", ranking: 44, strength: 78 },
+  { id: "ecu", name: "Ecuador", country: "Ecuador", flag: "🇪🇨", group: "E", ranking: 30, strength: 80 },
 
   // Group F
-  { name: "Argentina", country: "Argentina", flag: "🇦🇷", group: "F", ranking: 21, strength: 70 },
-  { name: "England", country: "England", flag: "🇬🇧", group: "F", ranking: 22, strength: 69 },
-  { name: "Italy", country: "Italy", flag: "🇮🇹", group: "F", ranking: 23, strength: 68 },
-  { name: "Netherlands", country: "Netherlands", flag: "🇳🇱", group: "F", ranking: 24, strength: 67 },
+  { id: "ned", name: "Netherlands", country: "Netherlands", flag: "🇳🇱", group: "F", ranking: 6, strength: 89 },
+  { id: "jpn", name: "Japan", country: "Japan", flag: "🇯🇵", group: "F", ranking: 18, strength: 83 },
+  { id: "swe", name: "Sweden", country: "Sweden", flag: "🇸🇪", group: "F", ranking: 29, strength: 79 },
+  { id: "tun", name: "Tunisia", country: "Tunisia", flag: "🇹🇳", group: "F", ranking: 55, strength: 73 },
 
   // Group G
-  { name: "Portugal", country: "Portugal", flag: "🇵🇹", group: "G", ranking: 25, strength: 66 },
-  { name: "Belgium", country: "Belgium", flag: "🇧🇪", group: "G", ranking: 26, strength: 65 },
-  { name: "Croatia", country: "Croatia", flag: "🇭🇷", group: "G", ranking: 27, strength: 64 },
-  { name: "Switzerland", country: "Switzerland", flag: "🇨🇭", group: "G", ranking: 28, strength: 63 },
+  { id: "bel", name: "Belgium", country: "Belgium", flag: "🇧🇪", group: "G", ranking: 12, strength: 87 },
+  { id: "egy", name: "Egypt", country: "Egypt", flag: "🇪🇬", group: "G", ranking: 36, strength: 77 },
+  { id: "irn", name: "Iran", country: "Iran", flag: "🇮🇷", group: "G", ranking: 21, strength: 81 },
+  { id: "nzl", name: "New Zealand", country: "New Zealand", flag: "🇳🇿", group: "G", ranking: 101, strength: 65 },
 
   // Group H
-  { name: "USA", country: "USA", flag: "🇺🇸", group: "H", ranking: 29, strength: 62 },
-  { name: "Mexico", country: "Mexico", flag: "🇲🇽", group: "H", ranking: 30, strength: 61 },
-  { name: "Japan", country: "Japan", flag: "🇯🇵", group: "H", ranking: 31, strength: 60 },
-  { name: "South Korea", country: "South Korea", flag: "🇰🇷", group: "H", ranking: 32, strength: 59 },
+  { id: "esp", name: "Spain", country: "Spain", flag: "🇪🇸", group: "H", ranking: 8, strength: 92 },
+  { id: "cpv", name: "Cape Verde", country: "Cape Verde", flag: "🇨🇻", group: "H", ranking: 62, strength: 71 },
+  { id: "sau", name: "Saudi Arabia", country: "Saudi Arabia", flag: "🇸🇦", group: "H", ranking: 59, strength: 74 },
+  { id: "uru", name: "Uruguay", country: "Uruguay", flag: "🇺🇾", group: "H", ranking: 15, strength: 85 },
 
   // Group I
-  { name: "Brazil", country: "Brazil", flag: "🇧🇷", group: "I", ranking: 33, strength: 58 },
-  { name: "Germany", country: "Germany", flag: "🇩🇪", group: "I", ranking: 34, strength: 57 },
-  { name: "Spain", country: "Spain", flag: "🇪🇸", group: "I", ranking: 35, strength: 56 },
-  { name: "France", country: "France", flag: "🇫🇷", group: "I", ranking: 36, strength: 55 },
+  { id: "fra", name: "France", country: "France", flag: "🇫🇷", group: "I", ranking: 2, strength: 93 },
+  { id: "sen", name: "Senegal", country: "Senegal", flag: "🇸🇳", group: "I", ranking: 17, strength: 83 },
+  { id: "irq", name: "Iraq", country: "Iraq", flag: "🇮🇶", group: "I", ranking: 54, strength: 74 },
+  { id: "nor", name: "Norway", country: "Norway", flag: "🇳🇴", group: "I", ranking: 47, strength: 81 },
 
   // Group J
-  { name: "Argentina", country: "Argentina", flag: "🇦🇷", group: "J", ranking: 37, strength: 54 },
-  { name: "England", country: "England", flag: "🇬🇧", group: "J", ranking: 38, strength: 53 },
-  { name: "Italy", country: "Italy", flag: "🇮🇹", group: "J", ranking: 39, strength: 52 },
-  { name: "Netherlands", country: "Netherlands", flag: "🇳🇱", group: "J", ranking: 40, strength: 51 },
+  { id: "arg", name: "Argentina", country: "Argentina", flag: "🇦🇷", group: "J", ranking: 1, strength: 95 },
+  { id: "dza", name: "Algeria", country: "Algeria", flag: "🇩🇿", group: "J", ranking: 41, strength: 77 },
+  { id: "aut", name: "Austria", country: "Austria", flag: "🇦🇹", group: "J", ranking: 25, strength: 79 },
+  { id: "jor", name: "Jordan", country: "Jordan", flag: "🇯🇴", group: "J", ranking: 88, strength: 67 },
 
   // Group K
-  { name: "Portugal", country: "Portugal", flag: "🇵🇹", group: "K", ranking: 41, strength: 50 },
-  { name: "Belgium", country: "Belgium", flag: "🇧🇪", group: "K", ranking: 42, strength: 49 },
-  { name: "Croatia", country: "Croatia", flag: "🇭🇷", group: "K", ranking: 43, strength: 48 },
-  { name: "Switzerland", country: "Switzerland", flag: "🇨🇭", group: "K", ranking: 44, strength: 47 },
+  { id: "por", name: "Portugal", country: "Portugal", flag: "🇵🇹", group: "K", ranking: 7, strength: 90 },
+  { id: "cod", name: "DR Congo", country: "DR Congo", flag: "🇨🇩", group: "K", ranking: 52, strength: 75 },
+  { id: "uzb", name: "Uzbekistan", country: "Uzbekistan", flag: "🇺🇿", group: "K", ranking: 64, strength: 72 },
+  { id: "col", name: "Colombia", country: "Colombia", flag: "🇨🇴", group: "K", ranking: 28, strength: 82 },
 
   // Group L
-  { name: "USA", country: "USA", flag: "🇺🇸", group: "L", ranking: 45, strength: 46 },
-  { name: "Mexico", country: "Mexico", flag: "🇲🇽", group: "L", ranking: 46, strength: 45 },
-  { name: "Japan", country: "Japan", flag: "🇯🇵", group: "L", ranking: 47, strength: 44 },
-  { name: "South Korea", country: "South Korea", flag: "🇰🇷", group: "L", ranking: 48, strength: 43 },
+  { id: "eng", name: "England", country: "England", flag: "🇬🇧", group: "L", ranking: 4, strength: 91 },
+  { id: "cro", name: "Croatia", country: "Croatia", flag: "🇭🇷", group: "L", ranking: 10, strength: 86 },
+  { id: "gha", name: "Ghana", country: "Ghana", flag: "🇬🇭", group: "L", ranking: 73, strength: 74 },
+  { id: "pan", name: "Panama", country: "Panama", flag: "🇵🇦", group: "L", ranking: 53, strength: 73 },
 ];
