@@ -3,84 +3,87 @@
 import { useState, useCallback } from "react";
 import { useLanguage } from "@/context/LanguageContext";
 import GroupStage from "@/components/GroupStage";
+import ThirdPlaceRanker from "@/components/ThirdPlaceRanker";
 import KnockoutBracket from "@/components/KnockoutBracket";
 import { Team } from "@/data/teams";
-import { getTopTeams } from "@/utils/simulator";
 
 export default function Home() {
-  const { language, setLanguage, t } = useLanguage();
+  const { language, setLanguage } = useLanguage();
+  const [groupStandings, setGroupStandings] = useState<Record<string, Team[]>>({});
+  const [bestThirds, setBestThirds] = useState<Team[]>([]);
 
-  const [qualifyingTeams, setQualifyingTeams] = useState<Team[]>([]);
-  const [groupStageComplete, setGroupStageComplete] = useState(false);
-
-  const handleLanguageToggle = () => {
-    setLanguage(language === "en" ? "vi" : "en");
-  };
-
-  const handleGroupStageComplete = useCallback(() => {
-    const { top2, bestThirds } = getTopTeams();
-    const topTwoTeams: Team[] = Object.values(top2).flat();
-    const qualifiers: Team[] = [...topTwoTeams, ...bestThirds];
-
-    if (qualifiers.length !== 32) {
-      console.warn(`Expected 32 qualifying teams, but got ${qualifiers.length}.`);
-    }
-
-    setQualifyingTeams(qualifiers);
-    setGroupStageComplete(true);
+  const handleGroupPredict = useCallback((predictions: Record<string, Team[]>) => {
+    setGroupStandings(predictions);
   }, []);
 
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
-      <header className="sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black">WC</div>
-            <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
-              World Cup <span className="text-blue-600">2026</span>
-            </h1>
-          </div>
+  const thirdPlaceCandidates = Object.values(groupStandings)
+    .map(g => g[2])
+    .filter(Boolean);
 
+  const qualifyingPool: Team[] = [];
+  Object.values(groupStandings).forEach((teams) => {
+    if (teams[0]) qualifyingPool.push(teams[0]);
+    if (teams[1]) qualifyingPool.push(teams[1]);
+  });
+  
+  const fullContenders = [...qualifyingPool, ...bestThirds];
+
+  return (
+    <div className="min-h-screen flex flex-col bg-white transition-colors duration-300">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        {/* Official Top Subtle Banner Strip */}
+        <div className="w-full h-1.5 bg-gradient-to-r from-[#3CAC3B] via-[#2A398D] to-[#E61D25]" />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-gray-500 dark:text-gray-400">
-              {language === "en" ? "ENGLISH" : "TIẾNG VIỆT"}
-            </span>
-            <button
-              onClick={handleLanguageToggle}
-              className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 dark:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <span
-                className={`inline-block h-4 w-4 rounded-full bg-white shadow transform transition-transform ${
-                  language === "en" ? "translate-x-1" : "translate-x-6"
-                }`}
-              />
-            </button>
+            {/* Official styled stacked '26' square graphic asset indicator */}
+            <div className="w-9 h-9 bg-black text-white flex flex-col items-center justify-center rounded font-sans font-black text-xs leading-none tracking-tighter select-none">
+              <span>2</span>
+              <span>6</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-serif font-black tracking-tight text-gray-900 uppercase leading-none">
+                WORLD CUP 2026
+              </h1>
+              <span className="font-sans font-bold text-[10px] uppercase tracking-widest text-gray-400">
+                Official Predictor Simulator
+              </span>
+            </div>
           </div>
+          
+          <button
+            onClick={() => setLanguage(language === "en" ? "vi" : "en")}
+            className="text-xs font-sans font-bold border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 text-gray-700 shadow-2xs"
+          >
+            {language === "en" ? "ENGLISH" : "TIẾNG VIỆT"}
+          </button>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-20">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-14">
         <section>
-          <div className="flex items-center gap-4 mb-8">
-            <h2 className="text-3xl font-black text-gray-800 dark:text-gray-100">{t("groupStage")}</h2>
-            <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-          </div>
-          <GroupStage onComplete={handleGroupStageComplete} />
+          <GroupStage onPredictComplete={handleGroupPredict} />
         </section>
 
-        {groupStageComplete && qualifyingTeams.length === 32 ? (
-          <section className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="flex items-center gap-4 mb-8">
-              <h2 className="text-3xl font-black text-gray-800 dark:text-gray-100">{t("knockoutStage")}</h2>
-              <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
-            </div>
-            <KnockoutBracket qualifyingTeams={qualifyingTeams} />
+        {thirdPlaceCandidates.length === 12 && (
+          <section className="bg-white pt-4">
+            <ThirdPlaceRanker 
+              thirdPlaceTeams={thirdPlaceCandidates}
+              selectedBestThirds={bestThirds}
+              onSelectionChange={setBestThirds}
+            />
+          </section>
+        )}
+
+        {bestThirds.length === 8 ? (
+          <section className="pt-4 border-t border-gray-200">
+            <KnockoutBracket qualifyingTeams={fullContenders} />
           </section>
         ) : (
-          <section className="text-center py-20 bg-white dark:bg-gray-800/50 rounded-3xl border-2 border-dashed border-gray-200 dark:border-gray-700">
-            <div className="text-4xl mb-4">🔒</div>
-            <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">
-              {t("simulateMatches")} to unlock the {t("knockoutStage")}
+          <section className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="text-2xl mb-2">🔒</div>
+            <p className="text-gray-500 text-sm font-sans font-medium">
+              Please finish selecting exactly 8 best third-place teams above to build out the full tournament tree.
             </p>
           </section>
         )}

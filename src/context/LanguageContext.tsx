@@ -1,3 +1,5 @@
+"use client";
+
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 type Language = "en" | "vi";
@@ -43,8 +45,6 @@ const dictionaries: Record<Language, Dictionary> = {
     winner: "Winner",
     select: "select",
     champion: "Champion",
-    // Misc
-    resetBracket: "Reset Bracket",
   },
   vi: {
     // General UI
@@ -82,8 +82,6 @@ const dictionaries: Record<Language, Dictionary> = {
     winner: "Người thắng",
     select: "chọn",
     champion: "Nhà vô địch",
-    // Misc
-    resetBracket: "Đặt lại bảng",
   },
 };
 

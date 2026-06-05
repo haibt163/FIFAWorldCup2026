@@ -1,48 +1,20 @@
+"use client";
+
 import { Team } from "@/data/teams";
-import { useLanguage } from "@/context/LanguageContext";
 
 type Props = {
   team: Team;
-  points: number;
-  goalDifference: number;
-  goalsFor: number;
-  goalsAgainst: number;
 };
 
-export default function TeamCard({
-  team,
-  points,
-  goalDifference,
-  goalsFor,
-  goalsAgainst,
-}: Props) {
-  const { t } = useLanguage();
-
+export default function TeamCard({ team }: Props) {
   return (
-    <div
-      className="flex items-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full"
-      role="row"
-      aria-label={t("teamCardAria", { team: team.name })}
-    >
-      <div className="text-lg mr-3 flex-shrink-0">
+    <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl shadow-2xs w-full">
+      {/* High impact big flag rendering block */}
+      <span className="text-2xl filter drop-shadow-sm select-none shrink-0">
         {team.flag || "🏳️"}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="font-semibold truncate text-sm text-gray-900 dark:text-gray-100">
-          {team.name}
-        </div>
-        <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-          {t("teamStats", {
-            gd: goalDifference,
-            gf: goalsFor,
-            ga: goalsAgainst,
-          })}
-        </div>
-      </div>
-
-      <div className="font-black text-sm text-blue-600 dark:text-blue-400 ml-2">
-        {points}
+      </span>
+      <div className="font-sans font-bold text-sm text-gray-900 truncate tracking-tight uppercase">
+        {team.name}
       </div>
     </div>
   );
