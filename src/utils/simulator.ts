@@ -5,7 +5,7 @@ export type MatchResult = {
   away: Team;
   homeGoals: number;
   awayGoals: number;
-  points: Record<string, number>; // team name -> points earned in this match
+  points: Record<string, number>;
 };
 
 export type GroupStanding = {
@@ -13,11 +13,11 @@ export type GroupStanding = {
   points: number;
   goalDifference: number;
   goalsFor: number;
+  wins: number;
   goalsAgainst: number;
 };
 
 export function simulateMatch(home: Team, away: Team): MatchResult {
-  // Simple random simulation based on strength
   const homeProb = home.strength / (home.strength + away.strength);
   const homeGoals = Math.floor(Math.random() * 5);
   const awayGoals = Math.floor(Math.random() * 5);
@@ -34,40 +34,31 @@ export function simulateMatch(home: Team, away: Team): MatchResult {
     points[away.name] = 1;
   }
 
-  return {
-    home,
-    away,
-    homeGoals,
-    awayGoals,
-    points,
-  };
+  return { home, away, homeGoals, awayGoals, points };
 }
+
+const compareStandings = (a: GroupStanding, b: GroupStanding) => {
+  if (b.points !== a.points) return b.points - a.points;
+  if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
+  if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
+  return b.wins - a.wins;
+};
 
 export function calculateGroupStandings(groupTeams: Team[]): GroupStanding[] {
   const standings: Record<string, GroupStanding> = {};
 
-  // Initialize standings
   groupTeams.forEach((t) => {
-    standings[t.name] = {
-      team: t,
-      points: 0,
-      goalDifference: 0,
-      goalsFor: 0,
-      goalsAgainst: 0,
-    };
+    standings[t.name] = { team: t, points: 0, goalDifference: 0, goalsFor: 0, wins: 0, goalsAgainst: 0 };
   });
 
-  // Simulate all matches within the group
   for (let i = 0; i < groupTeams.length; i++) {
     for (let j = i + 1; j < groupTeams.length; j++) {
       const result = simulateMatch(groupTeams[i], groupTeams[j]);
-
-      // Update points
       Object.entries(result.points).forEach(([name, pts]) => {
         standings[name].points += pts;
       });
-
-      // Update goals
+      if (result.homeGoals > result.awayGoals) standings[result.home.name].wins++;
+      if (result.awayGoals > result.homeGoals) standings[result.away.name].wins++;
       standings[result.home.name].goalsFor += result.homeGoals;
       standings[result.home.name].goalsAgainst += result.awayGoals;
       standings[result.away.name].goalsFor += result.awayGoals;
@@ -75,35 +66,24 @@ export function calculateGroupStandings(groupTeams: Team[]): GroupStanding[] {
     }
   }
 
-  // Compute goal difference
   Object.values(standings).forEach((s) => {
     s.goalDifference = s.goalsFor - s.goalsAgainst;
   });
 
-  // Return sorted array
-  return Object.values(standings).sort((a, b) => {
-    if (b.points !== a.points) return b.points - a.points;
-    if (b.goalDifference !== a.goalDifference) return b.goalDifference - a.goalDifference;
-    if (b.goalsFor !== a.goalsFor) return b.goalsFor - a.goalsFor;
-    return 0; // tie
-  });
+  return Object.values(standings).sort(compareStandings);
 }
 
 export function getGroupResults(): Record<string, GroupStanding[]> {
   const groups: Record<string, Team[]> = {};
-
-  // Group teams by group letter
   teams.forEach((t) => {
     if (!groups[t.group]) groups[t.group] = [];
     groups[t.group].push(t);
   });
 
   const results: Record<string, GroupStanding[]> = {};
-
   Object.entries(groups).forEach(([group, groupTeams]) => {
     results[group] = calculateGroupStandings(groupTeams);
   });
-
   return results;
 }
 
@@ -113,25 +93,15 @@ export function getTopTeams(): {
 } {
   const groupResults = getGroupResults();
   const top2: Record<string, Team[]> = {};
-  const thirdPlace: Team[] = [];
+  const thirdPlaceStandings: GroupStanding[] = [];
 
   Object.entries(groupResults).forEach(([group, standings]) => {
     top2[group] = [standings[0].team, standings[1].team];
-    thirdPlace.push(standings[2].team);
+    thirdPlaceStandings.push(standings[2]);
   });
 
-  // Sort third place teams by points, goal diff, goals for
-  thirdPlace.sort((a, b) => {
-    const aStanding = groupResults[a.group!].find((s) => s.team.name === a.name)!;
-    const bStanding = groupResults[b.group!].find((s) => s.team.name === b.name)!;
-    if (bStanding.points !== aStanding.points) return bStanding.points - aStanding.points;
-    if (bStanding.goalDifference !== aStanding.goalDifference) return bStanding.goalDifference - aStanding.goalDifference;
-    if (bStanding.goalsFor !== aStanding.goalsFor) return bStanding.goalsFor - aStanding.goalsFor;
-    return 0;
-  });
-
-  // Pick top 8 third-place teams
-  const bestThirds = thirdPlace.slice(0, 8);
+  const sortedThirds = thirdPlaceStandings.sort(compareStandings);
+  const bestThirds = sortedThirds.slice(0, 8).map((s) => s.team);
 
   return { top2, bestThirds };
 }
