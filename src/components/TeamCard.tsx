@@ -1,6 +1,5 @@
 import { Team } from "@/data/teams";
-import { useContext } from "react";
-import { LanguageContext } from "@/context/LanguageContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Props = {
   team: Team;
@@ -17,7 +16,7 @@ export default function TeamCard({
   goalsFor,
   goalsAgainst,
 }: Props) {
-  const { t } = useContext(LanguageContext);
+  const { t } = useLanguage();
 
   return (
     <div

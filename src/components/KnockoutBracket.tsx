@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Team } from "@/data/teams";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -71,23 +71,21 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
     initBracket();
   }, [initBracket]);
 
-  const selectWinner = (matchId: string, winner: Team) => {
+  const selectWinner = useCallback((matchId: string, winner: Team) => {
     setMatches((prev) => {
-      const updated = [...prev];
-      const matchIndex = updated.findIndex((m) => m.id === matchId);
+      const matchIndex = prev.findIndex((m) => m.id === matchId);
       if (matchIndex === -1) return prev;
 
-      // 1. Set the winner for this match
-      updated[matchIndex] = { ...updated[matchIndex], winner };
+      const updated = [...prev];
+      const currentMatch = { ...updated[matchIndex], winner };
+      updated[matchIndex] = currentMatch;
 
-      // 2. Propagate winner to the next round
-      const currentMatch = updated[matchIndex];
+      // Propagate winner to next round
       const nextRound = currentMatch.round + 1;
       if (nextRound <= TOTAL_ROUNDS) {
         const roundStarts = getRoundStartIndices(updated);
-        const startIdx = roundStarts[nextRound];
         const offsetInRound = Math.floor((matchIndex - roundStarts[currentMatch.round]) / 2);
-        const nextMatchIdx = startIdx + offsetInRound;
+        const nextMatchIdx = roundStarts[nextRound] + offsetInRound;
 
         const nextMatch = updated[nextMatchIdx];
         if (nextMatch) {
@@ -96,50 +94,9 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
         }
       }
 
-      // 3. Clear downstream branches
-      // Any match in the same or later rounds that depended on the previous winner must be reset
-      const roundStarts = getRoundStartIndices(updated);
-      const currentRoundStart = roundStarts[currentMatch.round];
-      
-      // We clear all matches in the next round that are "descendants" of this match
-      // and recursively clear their descendants.
-      const clearDownstream = (mIdx: number) => {
-        const m = updated[mIdx];
-        if (!m) return;
-        
-        // Clear this match's winner
-        updated[mIdx] = { ...m, winner: null };
-        
-        // Clear the slot in the next round
-        const nextRound = m.round + 1;
-        if (nextRound <= TOTAL_ROUNDS) {
-          const nextStart = roundStarts[nextRound];
-          const offset = Math.floor((mIdx - roundStarts[m.round]) / 2);
-          const nextIdx = nextStart + offset;
-          
-          const nextM = updated[nextIdx];
-          if (nextM) {
-            // Clear the team that came from this match
-            const teamToClear = m.winner;
-            if (nextM.team1 === teamToClear) updated[nextIdx] = { ...nextM, team1: null, winner: null };
-            else if (nextM.team2 === teamToClear) updated[nextIdx] = { ...nextM, team2: null, winner: null };
-            
-            clearDownstream(nextIdx);
-          }
-        }
-      };
-
-      // To properly clear, we need to clear the next match and its children
-      const nextRound = currentMatch.round + 1;
-      if (nextRound <= TOTAL_ROUNDS) {
-        const nextStart = roundStarts[nextRound];
-        const offset = Math.floor((matchIndex - roundStarts[currentMatch.round]) / 2);
-        clearDownstream(nextStart + offset);
-      }
-
       return updated;
     });
-  };
+  }, []);
 
   const getRoundLabel = (round: number): string => {
     switch (round) {

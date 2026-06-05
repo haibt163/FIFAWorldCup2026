@@ -1,14 +1,13 @@
 "use client";
 
-import { useContext } from "react";
-import { LanguageContext } from "@/src/context/LanguageContext";
+import { useLanguage } from "@/context/LanguageContext";
 
 type Props = {
   champion: string | null;
 };
 
 export default function ChampionBanner({ champion }: Props) {
-  const { t } = useContext(LanguageContext);
+  const { t } = useLanguage();
 
   if (!champion) return null;
 
