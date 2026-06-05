@@ -45,6 +45,7 @@ const dictionaries: Record<Language, Dictionary> = {
     winner: "Winner",
     select: "select",
     champion: "Champion",
+    languageSwitch: "Switch language to {{lang}}",
   },
   vi: {
     // General UI
@@ -82,6 +83,7 @@ const dictionaries: Record<Language, Dictionary> = {
     winner: "Người thắng",
     select: "chọn",
     champion: "Nhà vô địch",
+    languageSwitch: "Chuyển ngôn ngữ sang {{lang}}",
   },
 };
 

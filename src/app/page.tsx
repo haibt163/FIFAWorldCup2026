@@ -8,7 +8,7 @@ import KnockoutBracket from "@/components/KnockoutBracket";
 import { Team } from "@/data/teams";
 
 export default function Home() {
-  const { language, setLanguage } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
   const [groupStandings, setGroupStandings] = useState<Record<string, Team[]>>({});
   const [bestThirds, setBestThirds] = useState<Team[]>([]);
 
@@ -17,7 +17,7 @@ export default function Home() {
   }, []);
 
   const thirdPlaceCandidates = Object.values(groupStandings)
-    .map(g => g[2])
+    .map((g) => g[2])
     .filter(Boolean);
 
   const qualifyingPool: Team[] = [];
@@ -25,15 +25,15 @@ export default function Home() {
     if (teams[0]) qualifyingPool.push(teams[0]);
     if (teams[1]) qualifyingPool.push(teams[1]);
   });
-  
+
   const fullContenders = [...qualifyingPool, ...bestThirds];
 
   return (
     <div className="min-h-screen flex flex-col bg-white transition-colors duration-300">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         {/* Official Top Subtle Banner Strip */}
-        <div className="w-full h-1.5 bg-gradient-to-r from-[#3CAC3B] via-[#2A398D] to-[#E61D25]" />
-        
+        <div className="w-full h-1.5 bg-gradient-to-r from-[#3cac3b] via-[#2a398d] to-[#e61d25]" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
             {/* Official styled stacked '26' square graphic asset indicator */}
@@ -50,10 +50,11 @@ export default function Home() {
               </span>
             </div>
           </div>
-          
+
           <button
             onClick={() => setLanguage(language === "en" ? "vi" : "en")}
             className="text-xs font-sans font-bold border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 text-gray-700 shadow-2xs"
+            aria-label={t("languageSwitch", { lang: language === "en" ? "vi" : "en" })}
           >
             {language === "en" ? "ENGLISH" : "TIẾNG VIỆT"}
           </button>
@@ -67,7 +68,7 @@ export default function Home() {
 
         {thirdPlaceCandidates.length === 12 && (
           <section className="bg-white pt-4">
-            <ThirdPlaceRanker 
+            <ThirdPlaceRanker
               thirdPlaceTeams={thirdPlaceCandidates}
               selectedBestThirds={bestThirds}
               onSelectionChange={setBestThirds}
