@@ -4,7 +4,7 @@ import { useLanguage } from "@/context/LanguageContext";
 
 type Match = {
   id: string;
-  round: number; // 1 = Round of 32, 2 = Round of 16, 3 = Quarter, 4 = Semi, 5 = Final
+  round: number;
   team1: Team | null;
   team2: Team | null;
   winner: Team | null;
@@ -16,7 +16,6 @@ type KnockoutBracketProps = {
 
 const TOTAL_ROUNDS = 5;
 
-// Helper to compute the starting index of each round inside the flat matches array
 const getRoundStartIndices = (matches: Match[]) => {
   const starts: Record<number, number> = {};
   let idx = 0;
@@ -32,9 +31,6 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
   const { t } = useLanguage();
   const [matches, setMatches] = useState<Match[]>([]);
 
-  // -------------------------------------------------------------------------
-  // Bracket initialization
-  // -------------------------------------------------------------------------
   const initBracket = useCallback(() => {
     if (qualifyingTeams.length !== 32) {
       setMatches([]);
@@ -44,7 +40,6 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
     const initialMatches: Match[] = [];
     let matchId = 0;
 
-    // Round of 32 – 16 matches
     for (let i = 0; i < 32; i += 2) {
       initialMatches.push({
         id: `r1-${matchId++}`,
@@ -55,8 +50,7 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
       });
     }
 
-    // Subsequent rounds – counts follow a power‑of‑2 pattern
-    const roundMatchCounts = [8, 4, 2, 1]; // R16, QF, SF, Final
+    const roundMatchCounts = [8, 4, 2, 1];
     roundMatchCounts.forEach((count, idx) => {
       const roundNumber = idx + 2;
       for (let i = 0; i < count; i++) {
@@ -73,32 +67,26 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
     setMatches(initialMatches);
   }, [qualifyingTeams]);
 
-  // Run on mount / when qualifying teams change
   useEffect(() => {
     initBracket();
   }, [initBracket]);
 
-  // -------------------------------------------------------------------------
-  // Winner selection & propagation
-  // -------------------------------------------------------------------------
   const selectWinner = (matchId: string, winner: Team) => {
     setMatches((prev) => {
       const updated = [...prev];
       const matchIndex = updated.findIndex((m) => m.id === matchId);
       if (matchIndex === -1) return prev;
 
-      // Update current match
+      // 1. Set the winner for this match
       updated[matchIndex] = { ...updated[matchIndex], winner };
 
-      // Propagate winner to the next round
+      // 2. Propagate winner to the next round
       const currentMatch = updated[matchIndex];
       const nextRound = currentMatch.round + 1;
       if (nextRound <= TOTAL_ROUNDS) {
         const roundStarts = getRoundStartIndices(updated);
         const startIdx = roundStarts[nextRound];
-        const offsetInRound = Math.floor(
-          (matchIndex - roundStarts[currentMatch.round]) / 2
-        );
+        const offsetInRound = Math.floor((matchIndex - roundStarts[currentMatch.round]) / 2);
         const nextMatchIdx = startIdx + offsetInRound;
 
         const nextMatch = updated[nextMatchIdx];
@@ -108,36 +96,59 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
         }
       }
 
+      // 3. Clear downstream branches
+      // Any match in the same or later rounds that depended on the previous winner must be reset
+      const roundStarts = getRoundStartIndices(updated);
+      const currentRoundStart = roundStarts[currentMatch.round];
+      
+      // We clear all matches in the next round that are "descendants" of this match
+      // and recursively clear their descendants.
+      const clearDownstream = (mIdx: number) => {
+        const m = updated[mIdx];
+        if (!m) return;
+        
+        // Clear this match's winner
+        updated[mIdx] = { ...m, winner: null };
+        
+        // Clear the slot in the next round
+        const nextRound = m.round + 1;
+        if (nextRound <= TOTAL_ROUNDS) {
+          const nextStart = roundStarts[nextRound];
+          const offset = Math.floor((mIdx - roundStarts[m.round]) / 2);
+          const nextIdx = nextStart + offset;
+          
+          const nextM = updated[nextIdx];
+          if (nextM) {
+            // Clear the team that came from this match
+            const teamToClear = m.winner;
+            if (nextM.team1 === teamToClear) updated[nextIdx] = { ...nextM, team1: null, winner: null };
+            else if (nextM.team2 === teamToClear) updated[nextIdx] = { ...nextM, team2: null, winner: null };
+            
+            clearDownstream(nextIdx);
+          }
+        }
+      };
+
+      // To properly clear, we need to clear the next match and its children
+      const nextRound = currentMatch.round + 1;
+      if (nextRound <= TOTAL_ROUNDS) {
+        const nextStart = roundStarts[nextRound];
+        const offset = Math.floor((matchIndex - roundStarts[currentMatch.round]) / 2);
+        clearDownstream(nextStart + offset);
+      }
+
       return updated;
     });
   };
 
-  // -------------------------------------------------------------------------
-  // Reset handling
-  // -------------------------------------------------------------------------
-  const resetBracket = () => {
-    initBracket();
-  };
-
-  // -------------------------------------------------------------------------
-  // Helpers for rendering
-  // -------------------------------------------------------------------------
-  const getMatchesByRound = (round: number) => matches.filter((m) => m.round === round);
-
   const getRoundLabel = (round: number): string => {
     switch (round) {
-      case 1:
-        return "Round of 32";
-      case 2:
-        return "Round of 16";
-      case 3:
-        return t("quarterFinals");
-      case 4:
-        return t("semiFinals");
-      case 5:
-        return t("final");
-      default:
-        return "";
+      case 1: return "Round of 32";
+      case 2: return "Round of 16";
+      case 3: return t("quarterFinals");
+      case 4: return t("semiFinals");
+      case 5: return t("final");
+      default: return "";
     }
   };
 
@@ -145,122 +156,85 @@ const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
     const { team1, team2, winner, id } = match;
 
     return (
-      <div
-        className="flex flex-col items-center justify-center p-2 bg-gray-50 dark:bg-gray-700 rounded-lg shadow-sm mb-4 min-w-[180px]"
-        role="group"
-        aria-labelledby={`match-${id}`}
-      >
-        <div className="text-xs font-semibold mb-2 text-gray-600 dark:text-gray-300">
-          {getRoundLabel(match.round)}
-        </div>
-
-        <div className="flex items-center gap-2 w-full">
+      <div className="flex flex-col p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm mb-4 w-48 transition-all">
+        <div className="flex flex-col gap-1">
           <button
             onClick={() => team1 && selectWinner(id, team1)}
-            disabled={!team1 || (team2 !== null && winner !== null)}
-            className={`flex-1 text-left px-2 py-1 rounded ${
-              winner === team1
-                ? "bg-blue-500 text-white"
-                : "bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-            } ${
-              !team1 || (team2 !== null && winner !== null)
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
+            disabled={!team1}
+            className={`flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
+              winner === team1 ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
-            aria-label={team1 ? `${team1.name} ${t("select")}` : undefined}
           >
-            <span className="text-sm">{team1?.flag || ""}</span>
-            <span className="text-xs ml-1">{team1?.name || "TBD"}</span>
+            <span className="flex items-center gap-2 truncate">
+              <span>{team1?.flag || "🏳️"}</span>
+              <span className="truncate">{team1?.name || "TBD"}</span>
+            </span>
+            {winner === team1 && <span className="ml-1">✓</span>}
           </button>
-
-          <span className="text-gray-400 font-bold">vs</span>
 
           <button
             onClick={() => team2 && selectWinner(id, team2)}
-            disabled={!team2 || (team1 !== null && winner !== null)}
-            className={`flex-1 text-right px-2 py-1 rounded ${
-              winner === team2
-                ? "bg-blue-500 text-white"
-                : "bg-white dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700"
-            } ${
-              !team2 || (team1 !== null && winner !== null)
-                ? "opacity-50 cursor-not-allowed"
-                : "cursor-pointer"
+            disabled={!team2}
+            className={`flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
+              winner === team2 ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
             }`}
-            aria-label={team2 ? `${team2.name} ${t("select")}` : undefined}
           >
-            <span className="text-sm">{team2?.flag || ""}</span>
-            <span className="text-xs ml-1">{team2?.name || "TBD"}</span>
+            <span className="flex items-center gap-2 truncate">
+              <span>{team2?.flag || "🏳️"}</span>
+              <span className="truncate">{team2?.name || "TBD"}</span>
+            </span>
+            {winner === team2 && <span className="ml-1">✓</span>}
           </button>
         </div>
-
-        {winner && !isFinal && (
-          <div className="mt-2 text-xs text-green-600 dark:text-green-400 font-medium">
-            {t("winner")}: {winner.name}
-          </div>
-        )}
       </div>
     );
   };
 
-  const renderBracket = () => (
-    <div className="space-y-6">
-      {Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1).map((round) => (
-        <div key={round} className="space-y-2">
-          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">
-            {getRoundLabel(round)}
-          </h3>
-          <div className="flex flex-wrap gap-4 justify-center">
-            {getMatchesByRound(round).map((match) =>
-              renderMatch(match, round === TOTAL_ROUNDS)
-            )}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-
-  const renderChampion = () => {
-    const finalMatch = matches.find((m) => m.round === 5);
-    if (!finalMatch?.winner) return null;
-
-    return (
-      <div className="mt-8 p-6 bg-gradient-to-r from-yellow-400 to-orange-500 dark:from-yellow-500 dark:to-orange-600 rounded-xl shadow-lg text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">{t("predictWinner")}</h2>
-        <div className="text-4xl mb-2">{finalMatch.winner.flag}</div>
-        <div className="text-xl font-semibold text-white">{finalMatch.winner.name}</div>
-        <div className="text-white/80 mt-1">{t("final")} {t("champion")}</div>
-      </div>
-    );
-  };
-
-  // -------------------------------------------------------------------------
-  // Main render
-  // -------------------------------------------------------------------------
   if (qualifyingTeams.length !== 32) {
-    return (
-      <div className="text-center p-8 text-gray-500 dark:text-gray-400">
-        {t("waitingForTeams")}
-      </div>
-    );
+    return <div className="text-center p-8 text-gray-500 dark:text-gray-400">{t("waitingForTeams")}</div>;
   }
 
+  const finalMatch = matches.find((m) => m.round === 5);
+
   return (
-    <div className="p-4 max-w-4xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-center text-gray-800 dark:text-gray-200">
-          {t("knockoutStage")}
-        </h2>
+    <div className="flex flex-col items-center">
+      <div className="flex items-center justify-between w-full max-w-6xl mb-8">
+        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("knockoutStage")}</h2>
         <button
-          onClick={resetBracket}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+          onClick={initBracket}
+          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-colors"
         >
           {t("resetBracket")}
         </button>
       </div>
 
-      {renderBracket()}
-      {renderChampion()}
+      <div className="overflow-x-auto pb-8 w-full">
+        <div className="flex gap-8 min-w-max px-4 justify-center">
+          {Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1).map((round) => (
+            <div key={round} className="flex flex-col items-center">
+              <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-6 uppercase tracking-widest">
+                {getRoundLabel(round)}
+              </h3>
+              <div className="flex flex-col justify-around h-full gap-4">
+                {matches.filter((m) => m.round === round).map((match) => (
+                  <div key={match.id} className="flex items-center justify-center">
+                    {renderMatch(match, round === TOTAL_ROUNDS)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {finalMatch?.winner && (
+        <div className="mt-12 p-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-2xl text-center text-white max-w-md w-full">
+          <h2 className="text-xl font-bold mb-4 uppercase tracking-widest">{t("predictWinner")}</h2>
+          <div className="text-6xl mb-4">{finalMatch.winner.flag}</div>
+          <div className="text-3xl font-black mb-2">{finalMatch.winner.name}</div>
+          <div className="text-white/80 font-medium">{t("final")} {t("champion")}</div>
+        </div>
+      )}
     </div>
   );
 };

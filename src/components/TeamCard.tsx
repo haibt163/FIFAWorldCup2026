@@ -1,7 +1,6 @@
-import Image from "next/image";
-import { Team } from "@/src/data/teams";
+import { Team } from "@/data/teams";
 import { useContext } from "react";
-import { LanguageContext } from "@/src/context/LanguageContext";
+import { LanguageContext } from "@/context/LanguageContext";
 
 type Props = {
   team: Team;
@@ -22,28 +21,19 @@ export default function TeamCard({
 
   return (
     <div
-      className="flex items-center p-2 bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow"
+      className="flex items-center p-2 bg-gray-50 dark:bg-gray-900/50 rounded-lg shadow-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors w-full"
       role="row"
       aria-label={t("teamCardAria", { team: team.name })}
     >
-      {/* Flag – fallback to emoji if image missing */}
-      <div className="w-8 h-5 mr-2 flex-shrink-0">
-        {team.flag ? (
-          <Image
-            src={team.flag}
-            alt={`${team.name} flag`}
-            width={32}
-            height={20}
-            className="object-cover rounded-sm"
-          />
-        ) : (
-          <span>{team.emoji ?? "🏳️"}</span>
-        )}
+      <div className="text-lg mr-3 flex-shrink-0">
+        {team.flag || "🏳️"}
       </div>
 
       <div className="flex-1 min-w-0">
-        <div className="font-medium truncate">{team.name}</div>
-        <div className="text-xs text-gray-400">
+        <div className="font-semibold truncate text-sm text-gray-900 dark:text-gray-100">
+          {team.name}
+        </div>
+        <div className="text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider">
           {t("teamStats", {
             gd: goalDifference,
             gf: goalsFor,
@@ -52,7 +42,9 @@ export default function TeamCard({
         </div>
       </div>
 
-      <div className="font-bold text-lg">{points}</div>
+      <div className="font-black text-sm text-blue-600 dark:text-blue-400 ml-2">
+        {points}
+      </div>
     </div>
   );
 }
