@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { teams, Team } from "@/data/teams";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -26,7 +26,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
     I: "Weak", J: "Strong", K: "Strong", L: "Strong"
   });
 
-  const handleQuickMove = (groupLetter: string, teamId: string, targetIdx: number) => {
+  const handleQuickMove = useCallback((groupLetter: string, teamId: string, targetIdx: number) => {
     const updatedGroup = [...groupPredictions[groupLetter]];
     const currentIdx = updatedGroup.findIndex(t => t.id === teamId);
     if (currentIdx === -1 || currentIdx === targetIdx) return;
@@ -37,18 +37,18 @@ export default function GroupStage({ onPredictComplete }: Props) {
     const newPredictions = { ...groupPredictions, [groupLetter]: updatedGroup };
     setGroupPredictions(newPredictions);
     onPredictComplete(newPredictions);
-  };
+  }, [groupPredictions, onPredictComplete]);
 
   useEffect(() => {
     onPredictComplete(groupPredictions);
-  }, []);
+  }, [groupPredictions, onPredictComplete]);
 
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4">
-        <h2 className="text-4xl font-serif font-black tracking-tight text-gray-900 uppercase">GROUP STAGE</h2>
+        <h2 className="text-4xl font-serif font-black tracking-tight text-gray-900 uppercase">{t("groupStageTitle")}</h2>
         <p className="text-sm text-gray-600 font-sans mt-2 max-w-4xl leading-relaxed">
-          Organise teams from first to fourth based on how you think they will finish in each group. Group winners, runners-up and the eight best third-placed teams will advance to the round of 32.
+          {t("groupStageDescription")}
         </p>
       </div>
 
@@ -56,7 +56,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
         {letters.map((group) => (
           <div key={group} className="bg-[#f6f6f6] border border-gray-200 rounded-xl overflow-hidden shadow-sm p-4 space-y-3">
             <div className="flex justify-between items-center">
-              <h3 className="font-sans font-bold text-gray-900 text-base">Group {group}</h3>
+              <h3 className="font-sans font-bold text-gray-900 text-base">{t("groupLabel", { group })}</h3>
               <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded text-gray-700 bg-white border border-gray-200 shadow-2xs">
                 {groupStrengths[group]}
               </span>
@@ -70,7 +70,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
                   onClick={() => handleQuickMove(group, team.id, 0)}
                   className="flex items-center gap-1.5 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs"
                 >
-                  <span className="text-sm select-none">{team.flag}</span>
+                  <span className="text-sm select-none">{team.flag || "🏳️"}</span>
                   <span className="uppercase text-[10px] tracking-wider font-bold text-gray-500">
                     {team.id.substring(0, 3)}
                   </span>
@@ -98,7 +98,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
                     </span>
                     
                     <span className="text-xl filter drop-shadow-xs select-none min-w-[24px] text-center">
-                      {team.flag}
+                      {team.flag || "🏳️"}
                     </span>
                     
                     <span className="flex-1 font-sans font-bold text-sm text-gray-800 tracking-tight">

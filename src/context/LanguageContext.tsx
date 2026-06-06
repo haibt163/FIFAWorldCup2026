@@ -17,7 +17,8 @@ const dictionaries: Record<Language, Dictionary> = {
     predictWinner: "Predict the Winner",
     reset: "Reset",
     // Group Stage specific
-    groupStageTitle: "Group Stage",
+    groupStageTitle: "GROUP STAGE",
+    groupStageDescription: "Organise teams from first to fourth based on how you think they will finish in each group. Group winners, runners-up and the eight best third-placed teams will advance to the round of 32.",
     simulateAll: "Simulate All",
     simulationDone: "Simulation Complete",
     simulateAllAria: "Simulate all group matches",
@@ -55,7 +56,8 @@ const dictionaries: Record<Language, Dictionary> = {
     predictWinner: "Dự đoán người thắng",
     reset: "Đặt lại",
     // Group Stage specific
-    groupStageTitle: "Giai đoạn Bảng",
+    groupStageTitle: "GIAI ĐOẠN BẢNG",
+    groupStageDescription: "Sắp xếp các đội từ vị trí thứ nhất đến thứ tư dựa trên cách bạn nghĩ họ sẽ kết thúc trong mỗi bảng. Đội thắng bảng, đội á quân và tám đội đạt vị trí ba tốt nhất sẽ lên vòng tứ kết.",
     simulateAll: "Mô phỏng tất cả",
     simulationDone: "Mô phỏng hoàn tất",
     simulateAllAria: "Mô phỏng tất cả các trận đấu nhóm",
