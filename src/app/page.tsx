@@ -31,23 +31,23 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-white transition-colors duration-300">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-                   <div className="w-8 h-8 bg-black text-white flex items-center justify-center font-serif font-black text-sm shrink-0">HNA</div>
-            <h1 className="text-lg font-serif font-black tracking-tight text-gray-900 uppercase">
-              HAI NAM AI <span className="font-sans font-normal text-xs text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">HNA</div>
+            <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-gray-900 uppercase">
+              HAI NAM AI <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
             </h1>
           </div>
           <button
             onClick={() => setLanguage(language === "en" ? "vi" : "en")}
-            className="text-xs font-sans font-bold border border-gray-300 rounded-lg px-3 py-1.5 hover:bg-gray-50 text-gray-700"
+            className="text-sm font-sans font-bold border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 text-gray-700 transition-colors"
           >
-            {language === "en" ? "ENGLISH" : "TIẾNG VIỆT"}
+            {language === "en" ? "VIETNAMESE" : "ENGLISH"}
           </button>
         </div>
       </header>
 
-      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full space-y-14">
+      <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full space-y-16">
         <section>
           <GroupStage onPredictComplete={handleGroupPredict} />
         </section>
@@ -67,9 +67,9 @@ export default function Home() {
             <KnockoutBracket qualifyingTeams={fullContenders} />
           </section>
         ) : (
-          <section className="text-center py-12 bg-gray-50 rounded-xl border border-gray-200">
-            <div className="text-2xl mb-2">🔒</div>
-            <p className="text-gray-500 text-sm font-sans font-medium">
+          <section className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
+            <div className="text-3xl mb-3">🔒</div>
+            <p className="text-gray-500 text-base font-sans font-medium max-w-md mx-auto">
               {language === "en" 
                 ? "Please finish selecting exactly 8 best third-place teams above to build out the full tournament tree."
                 : "Vui lòng hoàn thành việc chọn chính xác 8 đội xếp thứ ba tốt nhất ở trên để hiển thị sơ đồ vòng loại trực tiếp."}
