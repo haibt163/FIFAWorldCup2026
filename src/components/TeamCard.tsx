@@ -1,6 +1,7 @@
 "use client";
 
 import { Team } from "@/data/teams";
+import { useLanguage } from "@/context/LanguageContext";
 
 function getFlagUrl(flag: string, id: string): string {
   try {
@@ -17,7 +18,6 @@ function getFlagUrl(flag: string, id: string): string {
 
   const lowerId = id.toLowerCase();
 
-  // FIFA code to ISO country code mappings
   if (lowerId === "eng") return "https://flagcdn.com/w40/gb-eng.png";
   if (lowerId === "sco") return "https://flagcdn.com/w40/gb-sct.png";
   if (lowerId === "mex") return "https://flagcdn.com/w40/mx.png";
@@ -75,15 +75,17 @@ type Props = {
 };
 
 export default function TeamCard({ team }: Props) {
+  const { language } = useLanguage();
+
   return (
     <div className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-xl shadow-2xs w-full">
-      <img 
-        src={getFlagUrl(team.flag, team.id)} 
-        alt={`${team.name} flag`} 
-        className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0 select-none" 
+      <img
+        src={getFlagUrl(team.flag, team.id)}
+        alt={`${team.name.en} flag`}
+        className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0 select-none"
       />
       <div className="font-sans font-bold text-sm text-gray-900 truncate tracking-tight uppercase">
-        {team.name}
+        {team.name[language]}
       </div>
     </div>
   );

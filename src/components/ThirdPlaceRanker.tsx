@@ -26,7 +26,6 @@ type Props = {
   onSelectionChange: (selected: Team[]) => void;
 };
 
-// Comprehensive country flag decoding map for robust cross-view rendering
 const FLAG_MAP: Record<string, string> = {
   eng: "gb-eng",
   sco: "gb-sct",
@@ -92,9 +91,10 @@ type RowProps = {
   t: any;
   moveItem: (index: number, direction: "up" | "down") => void;
   totalTeams: number;
+  language: "en" | "vi";
 };
 
-function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
+function SortableTeamRow({ team, index, t, moveItem, totalTeams, language }: RowProps) {
   const isQualified = index < 8;
   const {
     attributes,
@@ -108,7 +108,7 @@ function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
     transition,
-    touchAction: "none", // Keeps touch viewports stable while dragging items
+    touchAction: "none",
   };
 
   return (
@@ -120,12 +120,11 @@ function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
       className={`flex items-center justify-between gap-4 px-4 py-3.5 transition-all duration-150 ${
         isDragging ? "bg-emerald-50/40 opacity-50 scale-[0.99] z-50 relative shadow-md" : "bg-white"
       } ${
-        isQualified 
-          ? "hover:bg-emerald-50/20" 
+        isQualified
+          ? "hover:bg-emerald-50/20"
           : "hover:bg-gray-50/50 opacity-75"
       }`}
     >
-      {/* Left Wing: Rank Index & Flag */}
       <div className="flex items-center gap-4 min-w-0 pointer-events-none select-none">
         <span
           className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-extrabold tracking-tighter ${
@@ -145,16 +144,15 @@ function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
 
         <span
           className={`text-sm tracking-tight truncate font-medium ${
-            isQualified 
-              ? "text-gray-900 font-bold" 
+            isQualified
+              ? "text-gray-900 font-bold"
               : "text-gray-400 line-through decoration-gray-300"
           }`}
         >
-          {team.name}
+          {team.name[language]}
         </span>
       </div>
 
-      {/* Right Wing: Control Buttons and Badges */}
       <div className="flex items-center gap-3 shrink-0">
         <span
           className={`text-[10px] font-extrabold tracking-wider border rounded px-2 py-0.5 uppercase pointer-events-none select-none ${
@@ -166,8 +164,7 @@ function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
           {t.group} {team.group}
         </span>
 
-        {/* Tactical Mobile Up/Down Hotkeys (Stop propagation to prevent sensor interference) */}
-        <div 
+        <div
           className="flex items-center bg-gray-50 border border-gray-200/80 rounded-md overflow-hidden relative z-10"
           onPointerDown={(e) => e.stopPropagation()}
           onTouchStart={(e) => e.stopPropagation()}
@@ -195,7 +192,6 @@ function SortableTeamRow({ team, index, t, moveItem, totalTeams }: RowProps) {
           </button>
         </div>
 
-        {/* Desktop Drag Handle Accessory Indicator */}
         <div className="hidden sm:block cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-400 p-1">
           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
             <path d="M7 2a2 2 0 10.001 4.001A2 2 0 007 2zm0 6a2 2 0 10.001 4.001A2 2 0 007 8zm0 6a2 2 0 10.001 4.001A2 2 0 007 14zm6-12a2 2 0 10.001 4.001A2 2 0 0013 2zm0 6a2 2 0 10.001 4.001A2 2 0 0013 8zm0 6a2 2 0 10.001 4.001A2 2 0 0013 14z" />
@@ -214,33 +210,23 @@ export default function ThirdPlaceRanker({
   const { language } = useLanguage();
   const [orderedTeams, setOrderedTeams] = useState<Team[]>([]);
 
-  // Precision gesture timing layout configurations
   const sensors = useSensors(
     useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
+      activationConstraint: { distance: 8 },
     }),
     useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 250, // Critical: safely separates page scrolling from manual sorting layouts on iOS Safari
-        tolerance: 5,
-      },
+      activationConstraint: { delay: 250, tolerance: 5 },
     })
   );
 
-  // Synchronize layout order array and isolate 4th place ranking pollution
   useEffect(() => {
     if (thirdPlaceTeams.length > 0) {
-      // Eliminate stale groups selections that no longer occupy a 3rd place slot
       const validSelected = selectedBestThirds.filter((s) =>
         thirdPlaceTeams.some((t) => t.id === s.id)
       );
-      
       const unselected = thirdPlaceTeams.filter(
         (t) => !validSelected.some((s) => s.id === t.id)
       );
-      
       const initialOrder = [...validSelected, ...unselected];
       setOrderedTeams(initialOrder.slice(0, 12));
     } else {
@@ -248,7 +234,6 @@ export default function ThirdPlaceRanker({
     }
   }, [thirdPlaceTeams]);
 
-  // Safely propagate up exactly the top 8 variations back upstream
   useEffect(() => {
     if (orderedTeams.length >= 8) {
       const top8 = orderedTeams.slice(0, 8);
@@ -258,7 +243,6 @@ export default function ThirdPlaceRanker({
     }
   }, [orderedTeams]);
 
-  // Handle Drag & Drop termination gracefully
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over || active.id === over.id) return;
@@ -270,7 +254,6 @@ export default function ThirdPlaceRanker({
     });
   };
 
-  // Synchronize cross-platform positioning logic
   const moveItem = (index: number, direction: "up" | "down") => {
     const targetIndex = direction === "up" ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= orderedTeams.length) return;
@@ -330,13 +313,13 @@ export default function ThirdPlaceRanker({
                 t={t}
                 moveItem={moveItem}
                 totalTeams={orderedTeams.length}
+                language={language}
               />
             ))}
           </SortableContext>
         </DndContext>
       </div>
 
-      {/* Footer Summary Indicators */}
       <div className="px-6 py-3 bg-gray-50 border-t border-gray-100 flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-gray-400">
         <span className="text-emerald-600 flex items-center gap-1">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-pulse" />

@@ -1,5 +1,17 @@
+// src/components/ChampionBanner.tsx
+
+"use client";
+
+import { useLanguage } from "@/context/LanguageContext";
+import { Team } from "@/data/teams";
+
+type Props = {
+  champion: Team | null;
+};
+
 export default function ChampionBanner({ champion }: Props) {
   const { language } = useLanguage();
+
   if (!champion) return null;
 
   return (
@@ -9,10 +21,12 @@ export default function ChampionBanner({ champion }: Props) {
           {language === "en" ? "CONGRATULATIONS!" : "CHÚC MỪNG!"}
         </h2>
         <p className="text-sm text-gray-500 font-sans mb-4">
-          {language === "en" ? "Your Predicted World Cup Champion is:" : "Nhà vô địch World Cup dự đoán của bạn là:"}
+          {language === "en"
+            ? "Your Predicted World Cup Champion is:"
+            : "Nhà vô địch World Cup dự đoán của bạn là:"}
         </p>
         <div className="bg-gray-50 rounded-xl p-4 border border-gray-200 mb-6 font-sans font-black text-lg text-gray-900 uppercase">
-          {champion}
+          {champion.name[language]}
         </div>
         <button
           onClick={() => window.location.reload()}

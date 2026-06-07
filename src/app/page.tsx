@@ -5,15 +5,21 @@ import { useLanguage } from "@/context/LanguageContext";
 import GroupStage from "@/components/GroupStage";
 import ThirdPlaceRanker from "@/components/ThirdPlaceRanker";
 import KnockoutBracket from "@/components/KnockoutBracket";
+import ChampionBanner from "@/components/ChampionBanner";
 import { Team } from "@/data/teams";
 
 export default function Home() {
   const { language, setLanguage } = useLanguage();
   const [groupStandings, setGroupStandings] = useState<Record<string, Team[]>>({});
   const [bestThirds, setBestThirds] = useState<Team[]>([]);
+  const [champion, setChampion] = useState<Team | null>(null); // Track the champion
 
   const handleGroupPredict = useCallback((predictions: Record<string, Team[]>) => {
     setGroupStandings(predictions);
+  }, []);
+
+  const handleChampionSelected = useCallback((team: Team | null) => {
+    setChampion(team);
   }, []);
 
   const thirdPlaceCandidates = Object.values(groupStandings)
@@ -64,7 +70,8 @@ export default function Home() {
           <section className="pt-4 border-t border-gray-200">
             <KnockoutBracket 
               qualifyingTeams={qualifyingPool} 
-              selectedBestThirds={bestThirds} 
+              selectedBestThirds={bestThirds}
+              onChampionSelected={handleChampionSelected}
             />
           </section>
         ) : (
@@ -94,6 +101,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Champion Banner - shows when champion is selected */}
+      <ChampionBanner champion={champion} />
     </div>
   );
 }

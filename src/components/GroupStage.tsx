@@ -142,14 +142,14 @@ function SortableTeamRow({
       <span className="text-xs font-sans font-black w-4 text-center text-gray-500 shrink-0">{position + 1}</span>
       <img
         src={getFlagUrl(team.flag, team.id)}
-        alt={`${team.name} flag`}
+        alt={`${team.name.en} flag`}
         className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0"
       />
       <span className="flex-1 font-sans font-bold text-sm text-gray-800 tracking-tight truncate">
-        {team.name}
+        {team.name[language]}
       </span>
-      <div 
-        className="text-gray-400 text-sm font-sans font-bold select-none px-1 shrink-0 flex items-center justify-center opacity-100" 
+      <div
+        className="text-gray-400 text-sm font-sans font-bold select-none px-1 shrink-0 flex items-center justify-center opacity-100"
         title={language === "en" ? "Drag to reorder" : "Kéo để sắp xếp"}
       >
         <span className="tracking-wide">⋮⋮</span>
@@ -189,11 +189,11 @@ export default function GroupStage({ onPredictComplete }: Props) {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { 
-      activationConstraint: { 
+    useSensor(TouchSensor, {
+      activationConstraint: {
         delay: 200,
-        tolerance: 8    
-      } 
+        tolerance: 8,
+      },
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
@@ -281,10 +281,10 @@ export default function GroupStage({ onPredictComplete }: Props) {
                   onTouchEnd={(e) => e.stopPropagation()}
                   className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs relative z-10"
                 >
-                  <img 
-                    src={getFlagUrl(team.flag, team.id)} 
-                    alt="" 
-                    className="w-4 h-3 object-cover rounded shadow-2xs border border-gray-200/50 shrink-0" 
+                  <img
+                    src={getFlagUrl(team.flag, team.id)}
+                    alt=""
+                    className="w-4 h-3 object-cover rounded shadow-2xs border border-gray-200/50 shrink-0"
                   />
                   <span className="uppercase text-[9px] tracking-wider font-bold text-gray-500">
                     {team.id.substring(0, 3)}
@@ -293,9 +293,9 @@ export default function GroupStage({ onPredictComplete }: Props) {
               ))}
             </div>
 
-            <DndContext 
-              sensors={sensors} 
-              collisionDetection={closestCenter} 
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
               onDragStart={handleDragStart}
               onDragEnd={(e) => handleDragEnd(e, group)}
               onDragCancel={handleDragCancel}
@@ -313,7 +313,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
                   ))}
                 </div>
               </SortableContext>
-              
+
               <DragOverlay>
                 {activeId ? (() => {
                   let activeTeam: Team | undefined;
@@ -328,7 +328,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
                         alt=""
                         className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0"
                       />
-                      <span className="font-sans font-bold text-sm text-gray-800">{activeTeam.name}</span>
+                      <span className="font-sans font-bold text-sm text-gray-800">{activeTeam.name[language]}</span>
                     </div>
                   ) : null;
                 })() : null}

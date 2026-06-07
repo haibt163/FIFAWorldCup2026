@@ -16,6 +16,7 @@ type Match = {
 type Props = {
   qualifyingTeams: Team[]; // Array containing all 1st and 2nd place teams (24 total)
   selectedBestThirds: Team[]; // Array containing the 8 chosen 3rd-place teams from ThirdPlaceRanker
+  onChampionSelected: (champion: Team | null) => void; // NEW: callback when champion is selected
 };
 
 function getFlagUrl(flag: string, id: string): string {
@@ -39,10 +40,6 @@ function getFlagUrl(flag: string, id: string): string {
   return "https://flagcdn.com/w40/un.png";
 }
 
-/**
- * Official FIFA 2026 Constraint-Satisfaction Matching Engine
- * Allocates 8 selected third-place teams to their designated group winners
- */
 function allocateThirdPlaceTeams(selectedThirds: Team[]): Record<string, Team | null> {
   const allocation: Record<string, Team | null> = {
     "1A": null, "1B": null, "1D": null, "1E": null,
@@ -51,10 +48,8 @@ function allocateThirdPlaceTeams(selectedThirds: Team[]): Record<string, Team | 
 
   if (!selectedThirds || selectedThirds.length !== 8) return allocation;
 
-  // Stable sort by group alphabetically to ensure deterministic prioritized binding
   const pool = [...selectedThirds].sort((a, b) => a.group.localeCompare(b.group));
 
-  // Eligible pools defined by FIFA official bracket tracks
   const slots = [
     { key: "1E", allowed: ["A", "B", "C", "D", "F"] },
     { key: "1I", allowed: ["C", "D", "F", "G", "H"] },
@@ -78,7 +73,6 @@ function allocateThirdPlaceTeams(selectedThirds: Team[]): Record<string, Team | 
     }
   }
 
-  // Fallback structural safety layer to assign disjoint remaining teams if edge cases occur
   for (const slot of slots) {
     if (!allocation[slot.key]) {
       const fallback = pool.find((t) => !assignedTeams.has(t.id));
@@ -92,7 +86,6 @@ function allocateThirdPlaceTeams(selectedThirds: Team[]): Record<string, Team | 
   return allocation;
 }
 
-// Complete fully deterministic parental lineage labels for perfect localized fallbacks
 const matchSourceLabels: Record<number, { team1: { en: string; vi: string }; team2: { en: string; vi: string } }> = {
   73: { team1: { en: "1A Group Winner", vi: "Nhất Bảng A" }, team2: { en: "3rd Place A/B/C/D/F", vi: "Hạng 3 A/B/C/D/F" } },
   74: { team1: { en: "2A Runner-up", vi: "Nhì Bảng A" }, team2: { en: "2B Runner-up", vi: "Nhì Bảng B" } },
@@ -131,20 +124,17 @@ const matchSourceLabels: Record<number, { team1: { en: string; vi: string }; tea
   104: { team1: { en: "Winner M101", vi: "Thắng Trận M101" }, team2: { en: "Winner M102", vi: "Thắng Trận M102" } }
 };
 
-export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }: Props) {
+export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds, onChampionSelected }: Props) {
   const { language } = useLanguage();
   const [matches, setMatches] = useState<Record<number, Match>>({});
   const isVi = language === "vi";
 
-  // Comprehensive Bracket Initializer Engine using pure fixed-array offsets
   useEffect(() => {
     if (!qualifyingTeams || qualifyingTeams.length < 24) return;
 
-    // Run official constraint lookup algorithm for third places
     const thirdPlaceAllocations = allocateThirdPlaceTeams(selectedBestThirds);
     const initialMatches: Record<number, Match> = {};
 
-    // 1. Strict Index-Based Mapping for Round of 32 Grid Blueprint 
     const r32Setup = [
       { id: 73, label: "M73", t1: qualifyingTeams[0] || null, t2: thirdPlaceAllocations["1A"] },
       { id: 74, label: "M74", t1: qualifyingTeams[1] || null, t2: qualifyingTeams[3] || null },
@@ -168,22 +158,14 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
       initialMatches[m.id] = { id: m.id, round: 1, label: m.label, team1: m.t1, team2: m.t2, winner: null };
     });
 
-    // 2. High-Level Blueprint Nodes Frame Configuration
     const structure = [
-      { id: 89, round: 2, label: "M89" },
-      { id: 90, round: 2, label: "M90" },
-      { id: 91, round: 2, label: "M91" },
-      { id: 92, round: 2, label: "M92" },
-      { id: 93, round: 2, label: "M93" },
-      { id: 94, round: 2, label: "M94" },
-      { id: 95, round: 2, label: "M95" },
-      { id: 96, round: 2, label: "M96" },
-      { id: 97, round: 3, label: "M97" },
-      { id: 98, round: 3, label: "M98" },
-      { id: 99, round: 3, label: "M99" },
-      { id: 100, round: 3, label: "M100" },
-      { id: 101, round: 4, label: "M101" },
-      { id: 102, round: 4, label: "M102" },
+      { id: 89, round: 2, label: "M89" }, { id: 90, round: 2, label: "M90" },
+      { id: 91, round: 2, label: "M91" }, { id: 92, round: 2, label: "M92" },
+      { id: 93, round: 2, label: "M93" }, { id: 94, round: 2, label: "M94" },
+      { id: 95, round: 2, label: "M95" }, { id: 96, round: 2, label: "M96" },
+      { id: 97, round: 3, label: "M97" }, { id: 98, round: 3, label: "M98" },
+      { id: 99, round: 3, label: "M99" }, { id: 100, round: 3, label: "M100" },
+      { id: 101, round: 4, label: "M101" }, { id: 102, round: 4, label: "M102" },
       { id: 104, round: 5, label: "M104" },
     ];
 
@@ -194,7 +176,6 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
     setMatches(initialMatches);
   }, [qualifyingTeams, selectedBestThirds]);
 
-  // Cascade Progression Engine with forward clearing safety layers
   const selectWinner = (matchId: number, winner: Team) => {
     if (!matches[matchId]) return;
 
@@ -211,15 +192,12 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
         83: { target: 94, slot: "team1" }, 84: { target: 94, slot: "team2" },
         85: { target: 95, slot: "team1" }, 86: { target: 95, slot: "team2" },
         87: { target: 96, slot: "team1" }, 88: { target: 96, slot: "team2" },
-
         89: { target: 97, slot: "team1" }, 90: { target: 97, slot: "team2" },
         91: { target: 98, slot: "team1" }, 92: { target: 98, slot: "team2" },
         93: { target: 99, slot: "team1" }, 94: { target: 99, slot: "team2" },
         95: { target: 100, slot: "team1" }, 96: { target: 100, slot: "team2" },
-
         97: { target: 101, slot: "team1" }, 98: { target: 101, slot: "team2" },
         99: { target: 102, slot: "team1" }, 100: { target: 102, slot: "team2" },
-
         101: { target: 104, slot: "team1" }, 102: { target: 104, slot: "team2" },
       };
 
@@ -231,7 +209,6 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
 
         if (nextMatch) {
           const currentSourceWinner = sourceMatch ? sourceMatch.winner : null;
-          
           if (nextMatch[dep.slot]?.id !== currentSourceWinner?.id) {
             updated[dep.target] = {
               ...nextMatch,
@@ -241,6 +218,11 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
           }
         }
         currentId = dep.target;
+      }
+
+      // Check if the final match (id: 104) has a winner and notify parent
+      if (updated[104]?.winner) {
+        onChampionSelected(updated[104].winner);
       }
 
       return updated;
@@ -258,7 +240,6 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
 
     return (
       <div key={roundIndex} className="w-full flex flex-col space-y-4">
-        {/* Full Width Section Header Layout Style */}
         <div className="border-b-2 border-slate-900 pb-2 mb-2">
           <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-wider uppercase font-sans">
             {roundNames[isVi ? "vi" : "en"][roundIndex - 1]}
@@ -268,14 +249,12 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
           </p>
         </div>
 
-        {/* Responsive Layout Grid Nodes Frame Configuration */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-2">
           {roundMatches.map((match) => (
             <div
               key={match.id}
               className="bg-white border border-slate-200 shadow-xs rounded-lg overflow-hidden flex flex-col transition-all hover:border-slate-400 hover:shadow-sm"
             >
-              {/* Card Meta Indicator Tag */}
               <div className="bg-slate-50 px-3 py-1.5 border-b border-slate-100 flex justify-between items-center">
                 <span className="text-xs font-bold tracking-wider text-slate-500 font-mono">
                   {match.label}
@@ -287,7 +266,6 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
                 )}
               </div>
 
-              {/* Competitors Interactive Grid Nodes */}
               <div className="p-2 flex flex-col gap-1.5 bg-white">
                 {[
                   { team: match.team1, key: "team1" as const },
@@ -296,8 +274,8 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
                   const isWinner = match.winner?.id === team?.id && team !== null;
                   const hasWinnerSelected = match.winner !== null;
 
-                  const placeholder = isVi 
-                    ? matchSourceLabels[match.id][key].vi 
+                  const placeholder = isVi
+                    ? matchSourceLabels[match.id][key].vi
                     : matchSourceLabels[match.id][key].en;
 
                   return (
@@ -329,7 +307,7 @@ export default function KnockoutBracket({ qualifyingTeams, selectedBestThirds }:
                         )}
 
                         <span className="text-sm font-bold truncate tracking-tight font-sans">
-                          {team ? team.name : placeholder}
+                          {team ? team.name[language] : placeholder}
                         </span>
                       </div>
 
