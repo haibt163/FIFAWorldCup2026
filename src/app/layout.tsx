@@ -10,8 +10,41 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "World Cup 2026 Predictor",
-  description: "Interactive bilingual World Cup 2026 predictor dashboard",
+  title: "FIFA World Cup 2026 Predictor - Predict your champion!",
+  description: "Interactive bilingual World Cup 2026 predictor dashboard. Simulate groups, third-place rankings, and the entire knockout bracket with ease on mobile and desktop.",
+  keywords: "FIFA World Cup 2026, World Cup Predictor, World Cup Simulator, Football Predictor, Soccer Simulator, World Cup Bracket, World Cup 2026 Groups",
+  author: "VibeCode / [Your Name]",
+  alternates: {
+    canonical: "https://fifamundial2026.vercel.app/",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://fifamundial2026.vercel.app/",
+    title: "FIFA World Cup 2026 Predictor - Predict your champion!",
+    description: "Drag, drop, and simulate the entire 2026 World Cup tournament. Rank groups and predict knockout results with this smooth interactive tool.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "FIFA World Cup 2026 Simulator showing stadium, trophy, and football",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    site: "@yourtwitterhandle", // Optional: your Twitter handle
+    title: "FIFA World Cup 2026 Predictor - Predict your champion!",
+    description: "Interactive bilingual World Cup 2026 predictor dashboard. Simulate groups, third-place rankings, and the entire knockout bracket with ease.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({
