@@ -33,9 +33,9 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">HNA</div>
+            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">AI</div>
             <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-gray-900 uppercase">
-              HAI NAM AI <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
+              FOOTBALL AI <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
             </h1>
           </div>
           <button
