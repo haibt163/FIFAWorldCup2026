@@ -25,8 +25,6 @@ export default function Home() {
     if (teams[0]) qualifyingPool.push(teams[0]);
     if (teams[1]) qualifyingPool.push(teams[1]);
   });
-  
-  const fullContenders = [...qualifyingPool, ...bestThirds];
 
   return (
     <div className="min-h-screen flex flex-col bg-white transition-colors duration-300">
@@ -64,7 +62,10 @@ export default function Home() {
 
         {bestThirds.length === 8 ? (
           <section className="pt-4 border-t border-gray-200">
-            <KnockoutBracket qualifyingTeams={fullContenders} />
+            <KnockoutBracket 
+              qualifyingTeams={qualifyingPool} 
+              selectedBestThirds={bestThirds} 
+            />
           </section>
         ) : (
           <section className="text-center py-16 bg-gray-50 rounded-xl border border-gray-200">
