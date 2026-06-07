@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
   DragEndEvent,
+  DragStartEvent,
   DragOverlay,
 } from "@dnd-kit/core";
 import {
@@ -114,13 +115,13 @@ function SortableTeamRow({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    // Eliminates selection magnifiers and copy callouts on touch devices
     WebkitTouchCallout: "none" as const,
     WebkitUserSelect: "none" as const,
     KhtmlUserSelect: "none" as const,
     MozUserSelect: "none" as const,
     msUserSelect: "none" as const,
     userSelect: "none" as const,
+    touchAction: "none" as const, // Locks scrolling gestures inside Safari out of dragging windows
   };
 
   const styles = [
@@ -136,9 +137,9 @@ function SortableTeamRow({
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex items-center gap-3 p-2.5 border-l-4 rounded-lg border border-gray-100/80 ${styles[position]} transition-all cursor-grab active:cursor-grabbing touch-manipulation select-none`}
+      className={`flex items-center gap-3 p-2.5 border-l-4 rounded-lg border border-gray-100/80 ${styles[position]} transition-all cursor-grab active:cursor-grabbing touch-none select-none`}
     >
-      <span className="text-xs font-sans font-black w-4 text-center text-gray-500">{position + 1}</span>
+      <span className="text-xs font-sans font-black w-4 text-center text-gray-500 shrink-0">{position + 1}</span>
       <img
         src={getFlagUrl(team.flag, team.id)}
         alt={`${team.name} flag`}
@@ -152,16 +153,19 @@ function SortableTeamRow({
           e.stopPropagation();
           onQuickMove(groupLetter, team.id, 0);
         }}
-        // Stops dnd-kit from capturing the tap event on mobile viewports
         onTouchStart={(e) => e.stopPropagation()}
         onTouchEnd={(e) => e.stopPropagation()}
-        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation relative z-10"
+        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation relative z-10 shrink-0"
         title={language === "en" ? "Move to 1st" : "Chuyển lên đầu"}
       >
         ⬆
       </button>
-      <div className="text-gray-300 select-none px-1" title={language === "en" ? "Drag to reorder" : "Kéo để sắp xếp"}>
-        <span className="text-[10px] leading-none">⋮⋮</span>
+      {/* Explicitly colored handle that overrides opacity layers for mobile visibility */}
+      <div 
+        className="text-gray-400 text-sm font-sans font-bold select-none px-1 shrink-0 flex items-center justify-center opacity-100" 
+        title={language === "en" ? "Drag to reorder" : "Kéo để sắp xếp"}
+      >
+        <span className="tracking-wide">⋮⋮</span>
       </div>
     </div>
   );
@@ -170,6 +174,8 @@ function SortableTeamRow({
 export default function GroupStage({ onPredictComplete }: Props) {
   const { language } = useLanguage();
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+
+  const [activeId, setActiveId] = useState<string | null>(null);
 
   const [groupPredictions, setGroupPredictions] = useState<Record<string, Team[]>>(() => {
     const initial: Record<string, Team[]> = {};
@@ -194,13 +200,12 @@ export default function GroupStage({ onPredictComplete }: Props) {
     L: "Strong",
   });
 
-  // Balanced sensor configuration for snappy desktop & forgiving mobile interactions
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { 
       activationConstraint: { 
-        delay: 150,     // Marginally faster activation trigger
-        tolerance: 12    // Higher pixel boundary prevents normal thumb wiggles from aborting the drag
+        delay: 200,     // Slight hold constraint protects standard scrolling triggers
+        tolerance: 8    
       } 
     }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -222,7 +227,12 @@ export default function GroupStage({ onPredictComplete }: Props) {
     [groupPredictions, onPredictComplete]
   );
 
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id as string);
+  };
+
   const handleDragEnd = (event: DragEndEvent, groupLetter: string) => {
+    setActiveId(null);
     const { active, over } = event;
     if (!over || active.id === over.id) return;
 
@@ -235,6 +245,10 @@ export default function GroupStage({ onPredictComplete }: Props) {
       setGroupPredictions(newPredictions);
       onPredictComplete(newPredictions);
     }
+  };
+
+  const handleDragCancel = () => {
+    setActiveId(null);
   };
 
   useEffect(() => {
@@ -292,7 +306,13 @@ export default function GroupStage({ onPredictComplete }: Props) {
               ))}
             </div>
 
-            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, group)}>
+            <DndContext 
+              sensors={sensors} 
+              collisionDetection={closestCenter} 
+              onDragStart={handleDragStart}
+              onDragEnd={(e) => handleDragEnd(e, group)}
+              onDragCancel={handleDragCancel}
+            >
               <SortableContext items={groupPredictions[group].map((t) => t.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-1.5 bg-white border border-gray-200 rounded-xl p-2 shadow-inner">
                   {groupPredictions[group].map((team, idx) => (
@@ -306,20 +326,25 @@ export default function GroupStage({ onPredictComplete }: Props) {
                   ))}
                 </div>
               </SortableContext>
+              
               <DragOverlay>
-                {(activeId) => {
-                  const activeTeam = groupPredictions[group].find((t) => t.id === activeId);
+                {activeId ? (() => {
+                  let activeTeam: Team | undefined;
+                  for (const letter of letters) {
+                    activeTeam = groupPredictions[letter].find((t) => t.id === activeId);
+                    if (activeTeam) break;
+                  }
                   return activeTeam ? (
-                    <div className="bg-white border-l-4 border-emerald-400 rounded-lg shadow-lg p-2.5 flex items-center gap-3">
+                    <div className="bg-white border-l-4 border-emerald-400 rounded-lg shadow-lg p-2.5 flex items-center gap-3 select-none pointer-events-none">
                       <img
                         src={getFlagUrl(activeTeam.flag, activeTeam.id)}
                         alt=""
-                        className="w-7 h-5 object-cover rounded"
+                        className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0"
                       />
-                      <span className="font-sans font-bold text-sm">{activeTeam.name}</span>
+                      <span className="font-sans font-bold text-sm text-gray-800">{activeTeam.name}</span>
                     </div>
                   ) : null;
-                }}
+                })() : null}
               </DragOverlay>
             </DndContext>
           </div>
