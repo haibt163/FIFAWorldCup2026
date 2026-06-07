@@ -33,7 +33,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">MF</div>
             <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-gray-900 uppercase">
-              WORLD CUP 2026 <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
+              FIFA WORLD CUP 2026 <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
             </h1>
           </div>
           <button
