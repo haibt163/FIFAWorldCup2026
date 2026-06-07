@@ -134,13 +134,14 @@ export default function GroupStage({ onPredictComplete }: Props) {
     return initial;
   });
 
-  const [groupStrengths] = useState<Record<string, "Strong" | "Weak">>({
+  // Updated type to include all strength levels
+  const [groupStrengths] = useState<Record<string, "Very Strong" | "Strong" | "Average" | "Weak">>({
     A: "Weak",
     B: "Weak",
     C: "Average",
     D: "Weak",
     E: "Average",
-    F: "Strong",
+    F: "Very Strong",
     G: "Weak",
     H: "Weak",
     I: "Very Strong",
@@ -210,10 +211,15 @@ export default function GroupStage({ onPredictComplete }: Props) {
           <div key={group} className="bg-[#f6f6f6] border border-gray-200 rounded-xl overflow-hidden shadow-sm p-4 space-y-3 min-w-[280px]">
             <div className="flex justify-between items-center gap-2 flex-wrap">
               <h3 className="font-sans font-bold text-gray-900 text-base whitespace-nowrap">Group {group}</h3>
+              {/* Updated strength badge with full localization */}
               <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded text-gray-700 bg-white border border-gray-200 shadow-2xs whitespace-nowrap">
-                {groupStrengths[group] === "Strong" 
-                  ? (language === "en" ? "Strong" : "Mạnh") 
-                  : (language === "en" ? "Weak" : "Yếu")}
+                {(() => {
+                  const strength = groupStrengths[group];
+                  if (strength === "Very Strong") return language === "en" ? "Very Strong" : "Rất Mạnh";
+                  if (strength === "Strong") return language === "en" ? "Strong" : "Mạnh";
+                  if (strength === "Average") return language === "en" ? "Average" : "Trung Bình";
+                  return language === "en" ? "Weak" : "Yếu";
+                })()}
               </span>
             </div>
 
