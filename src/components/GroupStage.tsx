@@ -42,7 +42,6 @@ function getFlagUrl(flag: string, id: string): string {
 
   const lowerId = id.toLowerCase();
 
-  // FIFA code to ISO country code mappings
   if (lowerId === "eng") return "https://flagcdn.com/w40/gb-eng.png";
   if (lowerId === "sco") return "https://flagcdn.com/w40/gb-sct.png";
   if (lowerId === "mex") return "https://flagcdn.com/w40/mx.png";
@@ -95,7 +94,6 @@ function getFlagUrl(flag: string, id: string): string {
   return lowerId.length === 2 ? `https://flagcdn.com/w40/${lowerId}.png` : `https://flagcdn.com/w40/un.png`;
 }
 
-// Sortable item for each team row
 function SortableTeamRow({
   team,
   position,
@@ -116,6 +114,13 @@ function SortableTeamRow({
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    // Eliminates selection magnifiers and copy callouts on touch devices
+    WebkitTouchCallout: "none" as const,
+    WebkitUserSelect: "none" as const,
+    KhtmlUserSelect: "none" as const,
+    MozUserSelect: "none" as const,
+    msUserSelect: "none" as const,
+    userSelect: "none" as const,
   };
 
   const styles = [
@@ -131,7 +136,7 @@ function SortableTeamRow({
       style={style}
       {...attributes}
       {...listeners}
-      className={`flex items-center gap-3 p-2.5 border-l-4 rounded-lg border border-gray-100/80 ${styles[position]} transition-all cursor-grab active:cursor-grabbing touch-manipulation`}
+      className={`flex items-center gap-3 p-2.5 border-l-4 rounded-lg border border-gray-100/80 ${styles[position]} transition-all cursor-grab active:cursor-grabbing touch-manipulation select-none`}
     >
       <span className="text-xs font-sans font-black w-4 text-center text-gray-500">{position + 1}</span>
       <img
@@ -147,7 +152,10 @@ function SortableTeamRow({
           e.stopPropagation();
           onQuickMove(groupLetter, team.id, 0);
         }}
-        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation"
+        // Stops dnd-kit from capturing the tap event on mobile viewports
+        onTouchStart={(e) => e.stopPropagation()}
+        onTouchEnd={(e) => e.stopPropagation()}
+        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation relative z-10"
         title={language === "en" ? "Move to 1st" : "Chuyển lên đầu"}
       >
         ⬆
@@ -171,7 +179,6 @@ export default function GroupStage({ onPredictComplete }: Props) {
     return initial;
   });
 
-  // Updated type to include all strength levels
   const [groupStrengths] = useState<Record<string, "Very Strong" | "Strong" | "Average" | "Weak">>({
     A: "Weak",
     B: "Weak",
@@ -187,10 +194,15 @@ export default function GroupStage({ onPredictComplete }: Props) {
     L: "Strong",
   });
 
-  // Sensors for drag & drop (mouse + touch)
+  // Balanced sensor configuration for snappy desktop & forgiving mobile interactions
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(TouchSensor, { 
+      activationConstraint: { 
+        delay: 150,     // Marginally faster activation trigger
+        tolerance: 12    // Higher pixel boundary prevents normal thumb wiggles from aborting the drag
+      } 
+    }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
@@ -259,13 +271,14 @@ export default function GroupStage({ onPredictComplete }: Props) {
               </span>
             </div>
 
-            {/* Horizontal badges for quick move to 1st place */}
             <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none min-h-[42px]">
               {groupPredictions[group].map((team) => (
                 <button
                   key={`badge-${team.id}`}
                   onClick={() => handleQuickMove(group, team.id, 0)}
-                  className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs"
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onTouchEnd={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs relative z-10"
                 >
                   <img 
                     src={getFlagUrl(team.flag, team.id)} 
@@ -279,7 +292,6 @@ export default function GroupStage({ onPredictComplete }: Props) {
               ))}
             </div>
 
-            {/* Sortable ranking list */}
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, group)}>
               <SortableContext items={groupPredictions[group].map((t) => t.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-1.5 bg-white border border-gray-200 rounded-xl p-2 shadow-inner">
