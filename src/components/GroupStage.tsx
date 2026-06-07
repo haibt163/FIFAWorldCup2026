@@ -121,7 +121,7 @@ function SortableTeamRow({
     MozUserSelect: "none" as const,
     msUserSelect: "none" as const,
     userSelect: "none" as const,
-    touchAction: "none" as const, // Locks scrolling gestures inside Safari out of dragging windows
+    touchAction: "none" as const,
   };
 
   const styles = [
@@ -148,19 +148,6 @@ function SortableTeamRow({
       <span className="flex-1 font-sans font-bold text-sm text-gray-800 tracking-tight truncate">
         {team.name}
       </span>
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onQuickMove(groupLetter, team.id, 0);
-        }}
-        onTouchStart={(e) => e.stopPropagation()}
-        onTouchEnd={(e) => e.stopPropagation()}
-        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation relative z-10 shrink-0"
-        title={language === "en" ? "Move to 1st" : "Chuyển lên đầu"}
-      >
-        ⬆
-      </button>
-      {/* Explicitly colored handle that overrides opacity layers for mobile visibility */}
       <div 
         className="text-gray-400 text-sm font-sans font-bold select-none px-1 shrink-0 flex items-center justify-center opacity-100" 
         title={language === "en" ? "Drag to reorder" : "Kéo để sắp xếp"}
@@ -204,7 +191,7 @@ export default function GroupStage({ onPredictComplete }: Props) {
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(TouchSensor, { 
       activationConstraint: { 
-        delay: 200,     // Slight hold constraint protects standard scrolling triggers
+        delay: 200,
         tolerance: 8    
       } 
     }),
