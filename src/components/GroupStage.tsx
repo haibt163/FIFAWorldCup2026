@@ -145,9 +145,9 @@ export default function GroupStage({ onPredictComplete }: Props) {
     G: "Weak",
     H: "Weak",
     I: "Very Strong",
-    J: "Average",
+    J: "Strong",
     K: "Weak",
-    L: "Average",
+    L: "Strong",
   });
 
   // Sensors for drag & drop (mouse + touch)
