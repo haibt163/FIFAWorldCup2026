@@ -1,21 +1,17 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "../context/LanguageContext";
+import ClientLangSetter from "@/components/ClientLangSetter";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
   title: "World Cup 2026 Predictor",
-  description: "Interactive bilingual World Cup 2026 simulator",
+  description: "Interactive bilingual World Cup 2026 predictor dashboard",
 };
 
 export default function RootLayout({
@@ -24,12 +20,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
-        <LanguageProvider>{children}</LanguageProvider>
+    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+      <body className="min-h-full flex flex-col bg-white text-gray-900 font-sans">
+        <LanguageProvider>
+          <ClientLangSetter />
+          {children}
+        </LanguageProvider>
       </body>
     </html>
   );

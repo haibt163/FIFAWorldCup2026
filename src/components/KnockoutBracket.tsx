@@ -1,199 +1,266 @@
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
 import { Team } from "@/data/teams";
 import { useLanguage } from "@/context/LanguageContext";
 
 type Match = {
-  id: string;
+  id: number;
   round: number;
+  label: string;
   team1: Team | null;
   team2: Team | null;
   winner: Team | null;
 };
 
-type KnockoutBracketProps = {
+type Props = {
   qualifyingTeams: Team[];
 };
 
-const TOTAL_ROUNDS = 5;
+function getFlagUrl(flag: string, id: string): string {
+  try {
+    const chars = Array.from(flag || "");
+    const codePoints = [];
+    for (const char of chars) {
+      const cp = char.codePointAt(0);
+      if (cp && cp >= 0x1F1E6 && cp <= 0x1F1FF) {
+        codePoints.push(String.fromCharCode(cp - 0x1F1E6 + 97));
+      }
+    }
+    if (codePoints.length === 2) return `https://flagcdn.com/w40/${codePoints.join("")}.png`;
+  } catch (e) {}
+  const lowerId = id.toLowerCase();
+  if (lowerId === "eng") return "https://flagcdn.com/w40/gb-eng.png";
+  if (lowerId === "sco") return "https://flagcdn.com/w40/gb-sct.png";
+  if (lowerId === "mex") return "https://flagcdn.com/w40/mx.png";
+  if (lowerId === "rsa") return "https://flagcdn.com/w40/za.png";
+  if (lowerId === "kor") return "https://flagcdn.com/w40/kr.png";
+  if (lowerId === "cze") return "https://flagcdn.com/w40/cz.png";
+  if (lowerId === "can") return "https://flagcdn.com/w40/ca.png";
+  if (lowerId === "bih") return "https://flagcdn.com/w40/ba.png";
+  if (lowerId === "sui") return "https://flagcdn.com/w40/ch.png";
+  if (lowerId === "bra") return "https://flagcdn.com/w40/br.png";
+  if (lowerId === "mar") return "https://flagcdn.com/w40/ma.png";
+  return lowerId.length === 2 ? `https://flagcdn.com/w40/${lowerId}.png` : `https://flagcdn.com/w40/un.png`;
+}
 
-const getRoundStartIndices = (matches: Match[]) => {
-  const starts: Record<number, number> = {};
-  let idx = 0;
-  for (let round = 1; round <= TOTAL_ROUNDS; round++) {
-    const count = round === 1 ? 16 : Math.pow(2, TOTAL_ROUNDS - round);
-    starts[round] = idx;
-    idx += count;
-  }
-  return starts;
-};
-
-const KnockoutBracket = ({ qualifyingTeams }: KnockoutBracketProps) => {
-  const { t } = useLanguage();
+export default function KnockoutBracket({ qualifyingTeams }: Props) {
+  const { language } = useLanguage();
   const [matches, setMatches] = useState<Match[]>([]);
 
-  const initBracket = useCallback(() => {
-    if (qualifyingTeams.length !== 32) {
-      setMatches([]);
-      return;
-    }
+  const initOfficialTree = useCallback(() => {
+    if (qualifyingTeams.length < 24) return;
 
-    const initialMatches: Match[] = [];
-    let matchId = 0;
+    const winners: Record<string, Team> = {};
+    const runnersUp: Record<string, Team> = {};
+    const thirds: Team[] = qualifyingTeams.slice(24);
 
-    for (let i = 0; i < 32; i += 2) {
-      initialMatches.push({
-        id: `r1-${matchId++}`,
-        round: 1,
-        team1: qualifyingTeams[i] ?? null,
-        team2: qualifyingTeams[i + 1] ?? null,
-        winner: null,
-      });
-    }
-
-    const roundMatchCounts = [8, 4, 2, 1];
-    roundMatchCounts.forEach((count, idx) => {
-      const roundNumber = idx + 2;
-      for (let i = 0; i < count; i++) {
-        initialMatches.push({
-          id: `r${roundNumber}-${matchId++}`,
-          round: roundNumber,
-          team1: null,
-          team2: null,
-          winner: null,
-        });
-      }
+    const groupLetters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
+    groupLetters.forEach((letter, i) => {
+      winners[letter] = qualifyingTeams[i * 2] || null;
+      runnersUp[letter] = qualifyingTeams[i * 2 + 1] || null;
     });
 
-    setMatches(initialMatches);
+    const officialR32: Match[] = [
+      { id: 73, round: 1, label: "Sunday 28 June", team1: runnersUp["A"], team2: runnersUp["B"], winner: null },
+      { id: 74, round: 1, label: "Sunday 28 June", team1: winners["A"], team2: thirds[0] || null, winner: null },
+      { id: 75, round: 1, label: "Monday 29 June", team1: winners["B"], team2: thirds[1] || null, winner: null },
+      { id: 76, round: 1, label: "Monday 29 June", team1: winners["C"], team2: runnersUp["F"], winner: null },
+      { id: 77, round: 1, label: "Tuesday 30 June", team1: winners["F"], team2: runnersUp["C"], winner: null },
+      { id: 78, round: 1, label: "Tuesday 30 June", team1: runnersUp["E"], team2: runnersUp["I"], winner: null },
+      { id: 79, round: 1, label: "Tuesday 30 June", team1: winners["E"], team2: thirds[2] || null, winner: null },
+      { id: 80, round: 1, label: "Wednesday 1 July", team1: winners["I"], team2: thirds[3] || null, winner: null },
+      { id: 81, round: 1, label: "Wednesday 1 July", team1: winners["G"], team2: thirds[4] || null, winner: null },
+      { id: 82, round: 1, label: "Wednesday 1 July", team1: winners["D"], team2: thirds[5] || null, winner: null },
+      { id: 83, round: 1, label: "Thursday 2 July", team1: winners["H"], team2: runnersUp["J"], winner: null },
+      { id: 84, round: 1, label: "Thursday 2 July", team1: runnersUp["K"], team2: runnersUp["L"], winner: null },
+      { id: 85, round: 1, label: "Thursday 2 July", team1: winners["K"], team2: thirds[6] || null, winner: null },
+      { id: 86, round: 1, label: "Friday 3 July", team1: runnersUp["D"], team2: runnersUp["G"], winner: null },
+      { id: 87, round: 1, label: "Friday 3 July", team1: winners["J"], team2: runnersUp["H"], winner: null },
+      { id: 88, round: 1, label: "Friday 3 July", team1: winners["L"], team2: thirds[7] || null, winner: null },
+    ];
+
+    const round2To5: Match[] = [
+      { id: 89, round: 2, label: "Saturday 4 July", team1: null, team2: null, winner: null },
+      { id: 90, round: 2, label: "Saturday 4 July", team1: null, team2: null, winner: null },
+      { id: 91, round: 2, label: "Sunday 5 July", team1: null, team2: null, winner: null },
+      { id: 92, round: 2, label: "Sunday 5 July", team1: null, team2: null, winner: null },
+      { id: 93, round: 2, label: "Monday 6 July", team1: null, team2: null, winner: null },
+      { id: 94, round: 2, label: "Monday 6 July", team1: null, team2: null, winner: null },
+      { id: 95, round: 2, label: "Tuesday 7 July", team1: null, team2: null, winner: null },
+      { id: 96, round: 2, label: "Tuesday 7 July", team1: null, team2: null, winner: null },
+      { id: 97, round: 3, label: "Thursday 9 July", team1: null, team2: null, winner: null },
+      { id: 98, round: 3, label: "Friday 10 July", team1: null, team2: null, winner: null },
+      { id: 99, round: 3, label: "Saturday 11 July", team1: null, team2: null, winner: null },
+      { id: 100, round: 3, label: "Saturday 11 July", team1: null, team2: null, winner: null },
+      { id: 101, round: 4, label: "Tuesday 14 July", team1: null, team2: null, winner: null },
+      { id: 102, round: 4, label: "Wednesday 15 July", team1: null, team2: null, winner: null },
+      { id: 104, round: 5, label: "Sunday 19 July", team1: null, team2: null, winner: null },
+    ];
+
+    setMatches([...officialR32, ...round2To5]);
   }, [qualifyingTeams]);
 
   useEffect(() => {
-    initBracket();
-  }, [initBracket]);
+    initOfficialTree();
+  }, [initOfficialTree]);
 
-  const selectWinner = useCallback((matchId: string, winner: Team) => {
+  const selectWinner = (matchId: number, winner: Team) => {
     setMatches((prev) => {
-      const matchIndex = prev.findIndex((m) => m.id === matchId);
-      if (matchIndex === -1) return prev;
+      const idx = prev.findIndex((m) => m.id === matchId);
+      if (idx === -1) return prev;
 
       const updated = [...prev];
-      const currentMatch = { ...updated[matchIndex], winner };
-      updated[matchIndex] = currentMatch;
+      updated[idx] = { ...updated[idx], winner };
 
-      // Propagate winner to next round
-      const nextRound = currentMatch.round + 1;
-      if (nextRound <= TOTAL_ROUNDS) {
-        const roundStarts = getRoundStartIndices(updated);
-        const offsetInRound = Math.floor((matchIndex - roundStarts[currentMatch.round]) / 2);
-        const nextMatchIdx = roundStarts[nextRound] + offsetInRound;
+      const targetMap: Record<number, { match: number; slot: "team1" | "team2" }> = {
+        74: { match: 89, slot: "team1" },
+        77: { match: 89, slot: "team2" },
+        73: { match: 90, slot: "team1" },
+        75: { match: 90, slot: "team2" },
+        76: { match: 91, slot: "team1" },
+        78: { match: 91, slot: "team2" },
+        79: { match: 92, slot: "team1" },
+        80: { match: 92, slot: "team2" },
+        83: { match: 93, slot: "team1" },
+        84: { match: 93, slot: "team2" },
+        81: { match: 94, slot: "team1" },
+        82: { match: 94, slot: "team2" },
+        86: { match: 95, slot: "team1" },
+        88: { match: 95, slot: "team2" },
+        85: { match: 96, slot: "team1" },
+        87: { match: 96, slot: "team2" },
+        89: { match: 97, slot: "team1" },
+        90: { match: 97, slot: "team2" },
+        93: { match: 98, slot: "team1" },
+        94: { match: 98, slot: "team2" },
+        91: { match: 99, slot: "team1" },
+        92: { match: 99, slot: "team2" },
+        95: { match: 100, slot: "team1" },
+        96: { match: 100, slot: "team2" },
+        97: { match: 101, slot: "team1" },
+        98: { match: 101, slot: "team2" },
+        99: { match: 102, slot: "team1" },
+        100: { match: 102, slot: "team2" },
+        101: { match: 104, slot: "team1" },
+        102: { match: 104, slot: "team2" },
+      };
 
-        const nextMatch = updated[nextMatchIdx];
-        if (nextMatch) {
-          const slot = nextMatch.team1 ? "team2" : "team1";
-          updated[nextMatchIdx] = { ...nextMatch, [slot]: winner };
+      const target = targetMap[matchId];
+      if (target) {
+        const targetIdx = updated.findIndex((m) => m.id === target.match);
+        if (targetIdx !== -1) {
+          updated[targetIdx] = {
+            ...updated[targetIdx],
+            [target.slot]: winner,
+            winner: null,
+          };
         }
       }
-
       return updated;
     });
-  }, []);
+  };
 
-  const getRoundLabel = (round: number): string => {
-    switch (round) {
-      case 1: return "Round of 32";
-      case 2: return "Round of 16";
-      case 3: return t("quarterFinals");
-      case 4: return t("semiFinals");
-      case 5: return t("final");
-      default: return "";
+  const getHeadings = (roundNum: number) => {
+    switch (roundNum) {
+      case 1:
+        return {
+          h: language === "en" ? "ROUND OF 32" : "VÒNG 32 ĐỘI",
+          s: language === "en" ? "Select your winners for all 16 matches." : "Chọn đội chiến thắng cho tất cả 16 trận đấu.",
+        };
+      case 2:
+        return {
+          h: language === "en" ? "ROUND OF 16" : "VÒNG 16 ĐỘI",
+          s: language === "en" ? "Select your winners for all eight matches." : "Chọn đội chiến thắng cho tất cả 8 trận đấu.",
+        };
+      case 3:
+        return {
+          h: language === "en" ? "QUARTER-FINALS" : "VÒNG TỨ KẾT",
+          s: language === "en" ? "Select your winners for the quarter-finals." : "Chọn đội chiến thắng cho các trận tứ kết.",
+        };
+      case 4:
+        return {
+          h: language === "en" ? "SEMI-FINALS" : "VÒNG BÁN KẾT",
+          s: language === "en" ? "Select your winners for both semi-finals." : "Chọn đội chiến thắng cho cả hai trận bán kết.",
+        };
+      default:
+        return {
+          h: language === "en" ? "FINAL" : "TRẬN CHUNG KẾT",
+          s: language === "en" ? "Select your World Cup 2026 winner." : "Chọn nhà vô địch World Cup 2026 của bạn.",
+        };
     }
   };
 
-  const renderMatch = (match: Match, isFinal: boolean = false) => {
-    const { team1, team2, winner, id } = match;
+  const renderRoundSection = (roundNum: number) => {
+    const roundMatches = matches.filter((m) => m.round === roundNum);
+    const text = getHeadings(roundNum);
 
     return (
-      <div className="flex flex-col p-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm mb-4 w-48 transition-all">
-        <div className="flex flex-col gap-1">
-          <button
-            onClick={() => team1 && selectWinner(id, team1)}
-            disabled={!team1}
-            className={`flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
-              winner === team1 ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-            }`}
-          >
-            <span className="flex items-center gap-2 truncate">
-              <span>{team1?.flag || "🏳️"}</span>
-              <span className="truncate">{team1?.name || "TBD"}</span>
-            </span>
-            {winner === team1 && <span className="ml-1">✓</span>}
-          </button>
-
-          <button
-            onClick={() => team2 && selectWinner(id, team2)}
-            disabled={!team2}
-            className={`flex items-center justify-between px-2 py-1.5 rounded text-xs transition-colors ${
-              winner === team2 ? "bg-blue-600 text-white" : "bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600"
-            }`}
-          >
-            <span className="flex items-center gap-2 truncate">
-              <span>{team2?.flag || "🏳️"}</span>
-              <span className="truncate">{team2?.name || "TBD"}</span>
-            </span>
-            {winner === team2 && <span className="ml-1">✓</span>}
-          </button>
+      <div className="space-y-4">
+        <div className="border-b border-gray-200 pb-2">
+          <h2 className="text-3xl font-serif font-black text-gray-900 tracking-tight uppercase">{text.h}</h2>
+          <p className="text-xs text-gray-500 font-sans">{text.s}</p>
         </div>
-      </div>
-    );
-  };
-
-  if (qualifyingTeams.length !== 32) {
-    return <div className="text-center p-8 text-gray-500 dark:text-gray-400">{t("waitingForTeams")}</div>;
-  }
-
-  const finalMatch = matches.find((m) => m.round === 5);
-
-  return (
-    <div className="flex flex-col items-center">
-      <div className="flex items-center justify-between w-full max-w-6xl mb-8">
-        <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{t("knockoutStage")}</h2>
-        <button
-          onClick={initBracket}
-          className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-colors"
-        >
-          {t("resetBracket")}
-        </button>
-      </div>
-
-      <div className="overflow-x-auto pb-8 w-full">
-        <div className="flex gap-8 min-w-max px-4 justify-center">
-          {Array.from({ length: TOTAL_ROUNDS }, (_, i) => i + 1).map((round) => (
-            <div key={round} className="flex flex-col items-center">
-              <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-6 uppercase tracking-widest">
-                {getRoundLabel(round)}
-              </h3>
-              <div className="flex flex-col justify-around h-full gap-4">
-                {matches.filter((m) => m.round === round).map((match) => (
-                  <div key={match.id} className="flex items-center justify-center">
-                    {renderMatch(match, round === TOTAL_ROUNDS)}
-                  </div>
-                ))}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {roundMatches.map((match) => (
+            <div key={match.id} className="bg-white border border-gray-200 rounded-xl shadow-xs overflow-hidden p-3 space-y-2">
+              <div className="text-[10px] font-sans font-bold text-gray-500 tracking-wider uppercase">
+                {language === "en" ? "Match" : "Trận"} {match.id} • {match.label}
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                {[match.team1, match.team2].map((team, idx) => {
+                  const isWinner = match.winner?.id === team?.id && team !== null;
+                  return (
+                    <button
+                      key={idx}
+                      disabled={!team}
+                      onClick={() => team && selectWinner(match.id, team)}
+                      className={`flex flex-col items-center p-3 border rounded-xl transition-all relative touch-manipulation ${
+                        !team
+                          ? "bg-gray-50/50 border-gray-100 text-gray-300"
+                          : isWinner
+                          ? "bg-emerald-50 border-emerald-500 text-gray-900 font-bold ring-2 ring-emerald-500/10"
+                          : "bg-white border-gray-200 text-gray-800 hover:bg-gray-50"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        checked={isWinner}
+                        readOnly
+                        className="absolute top-2 right-2 w-3 h-3 text-emerald-600 border-gray-300 focus:ring-emerald-500"
+                      />
+                      {team ? (
+                        <img
+                          src={getFlagUrl(team.flag, team.id)}
+                          alt=""
+                          className="w-10 h-7 object-cover rounded shadow-xs border border-gray-200/60 mb-1 shrink-0"
+                        />
+                      ) : (
+                        <span className="text-3xl mb-1 select-none text-gray-300">🏳️</span>
+                      )}
+                      <span className="text-xs font-sans text-center truncate w-full tracking-tight">
+                        {team ? team.name : language === "en" ? `Winner M${match.id}` : `Thắng Trận ${match.id}`}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ))}
         </div>
       </div>
+    );
+  };
 
-      {finalMatch?.winner && (
-        <div className="mt-12 p-8 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-2xl shadow-2xl text-center text-white max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4 uppercase tracking-widest">{t("predictWinner")}</h2>
-          <div className="text-6xl mb-4">{finalMatch.winner.flag}</div>
-          <div className="text-3xl font-black mb-2">{finalMatch.winner.name}</div>
-          <div className="text-white/80 font-medium">{t("final")} {t("champion")}</div>
-        </div>
-      )}
+  if (qualifyingTeams.length === 0) return null;
+
+  return (
+    <div className="space-y-12">
+      {renderRoundSection(1)}
+      {renderRoundSection(2)}
+      {renderRoundSection(3)}
+      {renderRoundSection(4)}
+      {renderRoundSection(5)}
     </div>
   );
-};
-
-export default KnockoutBracket;
+}

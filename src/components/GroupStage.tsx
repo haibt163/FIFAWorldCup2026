@@ -1,6 +1,25 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { teams, Team } from "@/data/teams";
 import { useLanguage } from "@/context/LanguageContext";
 
@@ -8,111 +27,247 @@ type Props = {
   onPredictComplete: (groupStandings: Record<string, Team[]>) => void;
 };
 
+function getFlagUrl(flag: string, id: string): string {
+  try {
+    const chars = Array.from(flag || "");
+    const codePoints = [];
+    for (const char of chars) {
+      const cp = char.codePointAt(0);
+      if (cp && cp >= 0x1F1E6 && cp <= 0x1F1FF) {
+        codePoints.push(String.fromCharCode(cp - 0x1F1E6 + 97));
+      }
+    }
+    if (codePoints.length === 2) {
+      return `https://flagcdn.com/w40/${codePoints.join("")}.png`;
+    }
+  } catch (e) {}
+
+  const lowerId = id.toLowerCase();
+  // England and Scotland overrides
+  if (lowerId === "eng") return "https://flagcdn.com/w40/gb-eng.png";
+  if (lowerId === "sco") return "https://flagcdn.com/w40/gb-sct.png";
+  if (lowerId === "mex") return "https://flagcdn.com/w40/mx.png";
+  if (lowerId === "rsa") return "https://flagcdn.com/w40/za.png";
+  if (lowerId === "kor") return "https://flagcdn.com/w40/kr.png";
+  if (lowerId === "cze") return "https://flagcdn.com/w40/cz.png";
+  if (lowerId === "can") return "https://flagcdn.com/w40/ca.png";
+  if (lowerId === "bih") return "https://flagcdn.com/w40/ba.png";
+  if (lowerId === "sui") return "https://flagcdn.com/w40/ch.png";
+  if (lowerId === "bra") return "https://flagcdn.com/w40/br.png";
+  if (lowerId === "mar") return "https://flagcdn.com/w40/ma.png";
+  return lowerId.length === 2 ? `https://flagcdn.com/w40/${lowerId}.png` : `https://flagcdn.com/w40/un.png`;
+}
+
+// Sortable item for each team row
+function SortableTeamRow({
+  team,
+  position,
+  groupLetter,
+  onQuickMove,
+}: {
+  team: Team;
+  position: number;
+  groupLetter: string;
+  onQuickMove: (groupLetter: string, teamId: string, targetIdx: number) => void;
+}) {
+  const { language } = useLanguage();
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: team.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  const styles = [
+    "bg-[#eafaf1] text-[#27ae60] border-l-[#2ec4b6]",
+    "bg-[#eafaf1] text-[#27ae60] border-l-[#2ec4b6]",
+    "bg-[#fdfaf0] text-[#f39c12] border-l-[#ff9f1c]",
+    "bg-[#fafafa] text-gray-400 border-l-gray-300 line-through text-opacity-60",
+  ];
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
+      className={`flex items-center gap-3 p-2.5 border-l-4 rounded-lg border border-gray-100/80 ${styles[position]} transition-all cursor-grab active:cursor-grabbing touch-manipulation`}
+    >
+      <span className="text-xs font-sans font-black w-4 text-center text-gray-500">{position + 1}</span>
+      <img
+        src={getFlagUrl(team.flag, team.id)}
+        alt={`${team.name} flag`}
+        className="w-7 h-5 object-cover rounded shadow-2xs border border-gray-200/60 shrink-0"
+      />
+      <span className="flex-1 font-sans font-bold text-sm text-gray-800 tracking-tight truncate">
+        {team.name}
+      </span>
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onQuickMove(groupLetter, team.id, 0);
+        }}
+        className="text-[10px] bg-white border border-gray-200 rounded px-1.5 py-0.5 text-gray-500 hover:bg-gray-50 touch-manipulation"
+        title={language === "en" ? "Move to 1st" : "Chuyển lên đầu"}
+      >
+        ⬆
+      </button>
+      <div className="text-gray-300 select-none px-1" title={language === "en" ? "Drag to reorder" : "Kéo để sắp xếp"}>
+        <span className="text-[10px] leading-none">⋮⋮</span>
+      </div>
+    </div>
+  );
+}
+
 export default function GroupStage({ onPredictComplete }: Props) {
-  const { t } = useLanguage();
+  const { language } = useLanguage();
   const letters = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-  
+
   const [groupPredictions, setGroupPredictions] = useState<Record<string, Team[]>>(() => {
     const initial: Record<string, Team[]> = {};
-    letters.forEach(letter => {
+    letters.forEach((letter) => {
       initial[letter] = teams.filter((t) => t.group === letter);
     });
     return initial;
   });
 
   const [groupStrengths] = useState<Record<string, "Strong" | "Weak">>({
-    A: "Weak", B: "Weak", C: "Strong", D: "Weak",
-    E: "Weak", F: "Weak", G: "Weak", H: "Strong",
-    I: "Weak", J: "Strong", K: "Strong", L: "Strong"
+    A: "Weak",
+    B: "Weak",
+    C: "Strong",
+    D: "Weak",
+    E: "Weak",
+    F: "Weak",
+    G: "Weak",
+    H: "Strong",
+    I: "Weak",
+    J: "Strong",
+    K: "Strong",
+    L: "Strong",
   });
 
-  const handleQuickMove = useCallback((groupLetter: string, teamId: string, targetIdx: number) => {
-    const updatedGroup = [...groupPredictions[groupLetter]];
-    const currentIdx = updatedGroup.findIndex(t => t.id === teamId);
-    if (currentIdx === -1 || currentIdx === targetIdx) return;
-    
-    const [movedTeam] = updatedGroup.splice(currentIdx, 1);
-    updatedGroup.splice(targetIdx, 0, movedTeam);
-    
-    const newPredictions = { ...groupPredictions, [groupLetter]: updatedGroup };
-    setGroupPredictions(newPredictions);
-    onPredictComplete(newPredictions);
-  }, [groupPredictions, onPredictComplete]);
+  // Sensors for drag & drop (mouse + touch)
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleQuickMove = useCallback(
+    (groupLetter: string, teamId: string, targetIdx: number) => {
+      const updatedGroup = [...groupPredictions[groupLetter]];
+      const currentIdx = updatedGroup.findIndex((t) => t.id === teamId);
+      if (currentIdx === -1 || currentIdx === targetIdx) return;
+
+      const [movedTeam] = updatedGroup.splice(currentIdx, 1);
+      updatedGroup.splice(targetIdx, 0, movedTeam);
+
+      const newPredictions = { ...groupPredictions, [groupLetter]: updatedGroup };
+      setGroupPredictions(newPredictions);
+      onPredictComplete(newPredictions);
+    },
+    [groupPredictions, onPredictComplete]
+  );
+
+  const handleDragEnd = (event: DragEndEvent, groupLetter: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = groupPredictions[groupLetter].findIndex((t) => t.id === active.id);
+    const newIndex = groupPredictions[groupLetter].findIndex((t) => t.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = arrayMove(groupPredictions[groupLetter], oldIndex, newIndex);
+      const newPredictions = { ...groupPredictions, [groupLetter]: reordered };
+      setGroupPredictions(newPredictions);
+      onPredictComplete(newPredictions);
+    }
+  };
 
   useEffect(() => {
     onPredictComplete(groupPredictions);
-  }, [groupPredictions, onPredictComplete]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="space-y-6">
       <div className="border-b border-gray-200 pb-4">
-        <h2 className="text-4xl font-serif font-black tracking-tight text-gray-900 uppercase">{t("groupStageTitle")}</h2>
+        <h2 className="text-4xl font-serif font-black tracking-tight text-gray-900 uppercase">
+          {language === "en" ? "GROUP STAGE" : "VÒNG BẢNG"}
+        </h2>
         <p className="text-sm text-gray-600 font-sans mt-2 max-w-4xl leading-relaxed">
-          {t("groupStageDescription")}
+          {language === "en"
+            ? "Organise teams from first to fourth based on how you think they will finish in each group. Group winners, runners-up and the eight best third-placed teams will advance to the round of 32."
+            : "Sắp xếp các đội từ thứ nhất đến thứ tư dựa trên dự đoán của bạn về kết quả mỗi bảng. Các đội nhất, nhì bảng và 8 đội xếp thứ ba có thành tích tốt nhất sẽ tiến vào vòng 32 đội."}
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 auto-rows-fr">
         {letters.map((group) => (
-          <div key={group} className="bg-[#f6f6f6] border border-gray-200 rounded-xl overflow-hidden shadow-sm p-4 space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="font-sans font-bold text-gray-900 text-base">{t("groupLabel", { group })}</h3>
-              <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded text-gray-700 bg-white border border-gray-200 shadow-2xs">
-                {groupStrengths[group]}
+          <div key={group} className="bg-[#f6f6f6] border border-gray-200 rounded-xl overflow-hidden shadow-sm p-4 space-y-3 min-w-[280px]">
+            <div className="flex justify-between items-center gap-2 flex-wrap">
+              <h3 className="font-sans font-bold text-gray-900 text-base whitespace-nowrap">Group {group}</h3>
+              <span className="text-[11px] font-sans font-bold px-2 py-0.5 rounded text-gray-700 bg-white border border-gray-200 shadow-2xs whitespace-nowrap">
+                {groupStrengths[group] === "Strong" 
+                  ? (language === "en" ? "Strong" : "Mạnh") 
+                  : (language === "en" ? "Weak" : "Yếu")}
               </span>
             </div>
 
-            {/* Quick-toggle horizontal row layout */}
-            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+            {/* Horizontal badges for quick move to 1st place */}
+            <div className="flex gap-1 overflow-x-auto pb-1 scrollbar-none min-h-[42px]">
               {groupPredictions[group].map((team) => (
                 <button
                   key={`badge-${team.id}`}
                   onClick={() => handleQuickMove(group, team.id, 0)}
-                  className="flex items-center gap-1.5 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs"
+                  className="flex items-center gap-1 bg-white border border-gray-200 rounded px-1.5 py-1 text-xs font-sans font-medium text-gray-700 hover:bg-gray-50 shrink-0 shadow-2xs"
                 >
-                  <span className="text-sm select-none">{team.flag || "🏳️"}</span>
-                  <span className="uppercase text-[10px] tracking-wider font-bold text-gray-500">
+                  <img 
+                    src={getFlagUrl(team.flag, team.id)} 
+                    alt="" 
+                    className="w-4 h-3 object-cover rounded shadow-2xs border border-gray-200/50 shrink-0" 
+                  />
+                  <span className="uppercase text-[9px] tracking-wider font-bold text-gray-500">
                     {team.id.substring(0, 3)}
                   </span>
                 </button>
               ))}
             </div>
-            
-            {/* Main ranked lists with vibrant flags */}
-            <div className="space-y-1.5 bg-white border border-gray-200 rounded-xl p-2 shadow-inner">
-              {groupPredictions[group].map((team, idx) => {
-                const styles = [
-                  "bg-[#eafaf1] text-[#27ae60] border-l-[#2ec4b6]", 
-                  "bg-[#eafaf1] text-[#27ae60] border-l-[#2ec4b6]", 
-                  "bg-[#fdfaf0] text-[#f39c12] border-l-[#ff9f1c]", 
-                  "bg-[#fafafa] text-gray-400 border-l-gray-300 line-through text-opacity-60" 
-                ];
 
-                return (
-                  <div 
-                    key={team.id} 
-                    className={`flex items-center gap-3 p-2 border-l-4 rounded-lg border border-gray-100/80 ${styles[idx]} transition-all`}
-                  >
-                    <span className="text-xs font-sans font-black w-4 text-center text-gray-500">
-                      {idx + 1}
-                    </span>
-                    
-                    <span className="text-xl filter drop-shadow-xs select-none min-w-[24px] text-center">
-                      {team.flag || "🏳️"}
-                    </span>
-                    
-                    <span className="flex-1 font-sans font-bold text-sm text-gray-800 tracking-tight">
-                      {team.name}
-                    </span>
-
-                    <div className="flex flex-col gap-0.5 text-gray-300 select-none px-1">
-                      <span className="text-[10px] leading-none">░</span>
-                      <span className="text-[10px] leading-none">░</span>
+            {/* Sortable ranking list */}
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={(e) => handleDragEnd(e, group)}>
+              <SortableContext items={groupPredictions[group].map((t) => t.id)} strategy={verticalListSortingStrategy}>
+                <div className="space-y-1.5 bg-white border border-gray-200 rounded-xl p-2 shadow-inner">
+                  {groupPredictions[group].map((team, idx) => (
+                    <SortableTeamRow
+                      key={team.id}
+                      team={team}
+                      position={idx}
+                      groupLetter={group}
+                      onQuickMove={handleQuickMove}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+              <DragOverlay>
+                {(activeId) => {
+                  const activeTeam = groupPredictions[group].find((t) => t.id === activeId);
+                  return activeTeam ? (
+                    <div className="bg-white border-l-4 border-emerald-400 rounded-lg shadow-lg p-2.5 flex items-center gap-3">
+                      <img
+                        src={getFlagUrl(activeTeam.flag, activeTeam.id)}
+                        alt=""
+                        className="w-7 h-5 object-cover rounded"
+                      />
+                      <span className="font-sans font-bold text-sm">{activeTeam.name}</span>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  ) : null;
+                }}
+              </DragOverlay>
+            </DndContext>
           </div>
         ))}
       </div>
