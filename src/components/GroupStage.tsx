@@ -137,16 +137,16 @@ export default function GroupStage({ onPredictComplete }: Props) {
   const [groupStrengths] = useState<Record<string, "Strong" | "Weak">>({
     A: "Weak",
     B: "Weak",
-    C: "Strong",
+    C: "Average",
     D: "Weak",
-    E: "Weak",
-    F: "Weak",
+    E: "Average",
+    F: "Strong",
     G: "Weak",
-    H: "Strong",
-    I: "Weak",
-    J: "Strong",
-    K: "Strong",
-    L: "Strong",
+    H: "Weak",
+    I: "Very Strong",
+    J: "Average",
+    K: "Weak",
+    L: "Average",
   });
 
   // Sensors for drag & drop (mouse + touch)
