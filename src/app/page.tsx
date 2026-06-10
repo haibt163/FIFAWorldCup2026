@@ -37,9 +37,9 @@ export default function Home() {
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            {/* Changed w-10 to px-3 to let the box dynamically fit "SPEED" */}
+            {/* Changed w-10 to px-3 to let the box dynamically fit "SPEED26" */}
             <div className="h-10 px-3 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">
-              SPEED
+              SPEED26
             </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-gray-900 uppercase">
               FIFA WORLD CUP 2026 <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
@@ -86,7 +86,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500 font-sans">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-gray-900 tracking-wider">SPEED</span>
+            <span className="font-serif font-bold text-gray-900 tracking-wider">SPEED26</span>
             <span>&copy; {new Date().getFullYear()} World Cup 2026 Predictor.</span>
           </div>
           <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">
