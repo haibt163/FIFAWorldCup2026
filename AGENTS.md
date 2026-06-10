@@ -34,7 +34,7 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 ## 4. UI/UX Style, Ambient Media & IShowSpeed Integration
 * **Inspiration:** Premium interactive look and feel modeled directly after *The Telegraph’s* official simulation dashboards.
 * **Atmospheric Visuals:** The application utilizes a customized overlay asset layer (`/ishowspeed.png`) served straight from the root `/public` directory. It is rendered as a global fixed background matrix with linear mask opacities configured inside `globals.css` to frame content elements beautifully without degrading readability or contrast.
-* **Resilient Audio Infrastructure (YouTube Player API):** To secure full autoplay stability on mobile viewports (iOS Safari & Android Chrome) and bypass modern browser media blockages, streaming audio (`videoId: '0t9K-fV9O98'`) initializes asynchronously using a Next.js `Script` engine. 
+* **Resilient Audio Infrastructure (YouTube Player API):** To secure full autoplay stability on mobile viewports (iOS Safari & Android Chrome) and bypass modern browser media blockages, streaming audio initializes asynchronously using a custom client-side `SpeedAudioManager` module. 
 * **Gesture-Activated Bridge:** Playback automatically activates the millisecond a user interacts with the app (via click, touch tap, or scroll actions).
 * **Automatic Silent Kill-switch:** The player monitors the viewport using a real-time `MutationObserver` on the root body element. As soon as a user finishes their prediction matrix and triggers the final champion presentation sequence (`ChampionBanner.tsx`), the music track pauses instantly.
 
@@ -45,7 +45,7 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 ## Current Progress
 * **Core Concept**: Premium World Cup 2026 prediction platform with precise group standings mapping and mathematical knockout brackets.
 * **Live Deployment**: Fully compiled, optimized, and deployed on Vercel at [https://fifamundial2026.vercel.app/](https://fifamundial2026.vercel.app/).
-* **Media & Aesthetic Immersion**: Complete. Ambient IShowSpeed artwork layer and cross-platform gesture-activated background theme music are operational.
+* **Media & Aesthetic Immersion**: Complete. Ambient IShowSpeed artwork layer and cross-platform gesture-activated background theme music are fully operational.
 
 ## Completed Tasks
 - [x] Group stage component with 12 groups (A–L) and custom horizontal toggle badges
@@ -54,12 +54,15 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 - [x] Mathematically absolute Annex C Knockout Bracket (Matches 73–104) accommodating all 495 variations
 - [x] Cross-platform flagcdn.com decoding engine for crisp UI asset rendering
 - [x] Champion selection celebration banners
-- [x] Integrate IShowSpeed public graphic asset backdrop seamlessly without breaking text layout systems
-- [x] Install gesture-primed background tournament audio stream with custom DOM Mutation observer kill-switches
+- [x] Fix background opacity layers across `page.tsx` and `layout.tsx` to let the `ishowspeed.png` wallpaper shine through from `globals.css`.
+- [x] Consolidate conflicting layouts into a single managed client wrapper (`SpeedAudioManager.tsx`) with clear Next.js imports to prevent server layout hydration mismatches.
+- [x] Update the YouTube background music module to play the explicit track identifier (`videoId: 'vrY1THC_NQE'`).
+- [x] Expand target element wrapper dimensions inside `SpeedAudioManager` to `1px` by `1px` to permanently prevent modern mobile web engines from silently sleeping or pausing the stream.
 
 ## Pending Tasks
 - [ ] Add prediction sharing configurations or image-generation downloads
 
 ## Architectural Decisions
-* **Interaction Isolation**: Fast-action buttons manually override touch sensors via explicit `e.stopPropagation()` triggers to maintain rapid tactile response rates on high-refresh mobile viewports.
-* **Rigid Core Logic Locking**: The foundational state handling structure within `KnockoutBracket.tsx` and `ThirdPlaceRanker.tsx` is fixed to uphold external FIFA regulatory guidelines; future updates will strictly focus on cosmetics and peripheral analytics features.
+* **Interaction Isolation:** Fast-action buttons manually override touch sensors via explicit `e.stopPropagation()` triggers to maintain rapid tactile response rates on high-refresh mobile viewports.
+* **Rigid Core Logic Locking:** The foundational state handling structure within `KnockoutBracket.tsx` and `ThirdPlaceRanker.tsx` is fixed to uphold external FIFA regulatory guidelines; future updates will strictly focus on cosmetics and peripheral analytics features.
+* **Audio Layer Segregation:** Global background sound initialization logic is entirely decoupled from the parent Next.js root layout document layout markup and bound securely within custom React hooks to avoid conflicting with runtime browser state transitions.

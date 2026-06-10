@@ -11,10 +11,38 @@ declare global {
 
 export default function SpeedAudioManager() {
   const playerRef = useRef<any>(null);
-  const audioStartedRef = useRef<boolean>(false);
+  const hasInteractedRef = useRef<boolean>(false);
+  const isPlayingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // 1. Load the YouTube IFrame Player API Script dynamically
+    // 1. Capture early interaction instantly at any point during initialization
+    const startPlaybackOnInteraction = () => {
+      hasInteractedRef.current = true;
+      
+      // If player is fully loaded and ready, play instantly on this interaction
+      if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+        if (!isPlayingRef.current) {
+          playerRef.current.playVideo();
+          isPlayingRef.current = true;
+          cleanupInteractionListeners();
+        }
+      }
+    };
+
+    const cleanupInteractionListeners = () => {
+      window.removeEventListener("click", startPlaybackOnInteraction);
+      window.removeEventListener("touchstart", startPlaybackOnInteraction);
+      window.removeEventListener("scroll", startPlaybackOnInteraction);
+      window.removeEventListener("keydown", startPlaybackOnInteraction);
+    };
+
+    // Attach listeners immediately to capture instantaneous engagement
+    window.addEventListener("click", startPlaybackOnInteraction, { capture: true });
+    window.addEventListener("touchstart", startPlaybackOnInteraction, { passive: true, capture: true });
+    window.addEventListener("scroll", startPlaybackOnInteraction, { passive: true, capture: true });
+    window.addEventListener("keydown", startPlaybackOnInteraction, { capture: true });
+
+    // 2. Load the YouTube IFrame Player API Script dynamically
     if (!window.YT) {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
@@ -24,14 +52,14 @@ export default function SpeedAudioManager() {
       }
     }
 
-    // 2. Initialize Player when API is ready
-    window.onYouTubeIframeAPIReady = () => {
+    // 3. Initialize Player when API is ready
+    const initPlayer = () => {
       playerRef.current = new window.YT.Player("speed-hidden-player", {
-        height: "1", // Must be 1, not 0, to bypass mobile browser blocking
-        width: "1",  // Must be 1, not 0
-        videoId: "vrY1THC_NQE", // Correct IShowSpeed Video ID
+        height: "1", // Must be 1 to bypass mobile browser blocking policies
+        width: "1",  // Must be 1
+        videoId: "vrY1THC_NQE", // Correct IShowSpeed Track ID
         playerVars: {
-          autoplay: 0,
+          autoplay: 1,
           controls: 0,
           loop: 1,
           playlist: "vrY1THC_NQE", // Must match videoId to loop correctly
@@ -39,36 +67,34 @@ export default function SpeedAudioManager() {
           disablekb: 1,
         },
         events: {
-          onReady: onPlayerReady,
+          onReady: () => {
+            // Check if the user interacted with the page while the API script was downloading
+            if (hasInteractedRef.current && playerRef.current && typeof playerRef.current.playVideo === "function") {
+              playerRef.current.playVideo();
+              isPlayingRef.current = true;
+              cleanupInteractionListeners();
+            }
+          },
+          onStateChange: (event: any) => {
+            // Re-trigger if browser security forcefully paused or unstarted the playback state
+            if ((event.data === window.YT.PlayerState.UNSTARTED || event.data === window.YT.PlayerState.PAUSED) && hasInteractedRef.current && !isPlayingRef.current) {
+              playerRef.current.playVideo();
+              isPlayingRef.current = true;
+              cleanupInteractionListeners();
+            }
+          }
         },
       });
     };
 
-    const onPlayerReady = () => {
-      // Setup browser gesture interaction listeners to bypass autoplay prevention models
-      window.addEventListener("click", startPlaybackOnInteraction);
-      window.addEventListener("touchstart", startPlaybackOnInteraction, { passive: true });
-      window.addEventListener("scroll", startPlaybackOnInteraction, { passive: true });
-    };
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
 
-    const startPlaybackOnInteraction = () => {
-      if (audioStartedRef.current) return;
-      if (playerRef.current && typeof playerRef.current.playVideo === "function") {
-        playerRef.current.playVideo();
-        audioStartedRef.current = true;
-        cleanupInteractionListeners();
-      }
-    };
-
-    const cleanupInteractionListeners = () => {
-      window.removeEventListener("click", startPlaybackOnInteraction);
-      window.removeEventListener("touchstart", startPlaybackOnInteraction);
-      window.removeEventListener("scroll", startPlaybackOnInteraction);
-    };
-
-    // 3. Mutation Observer: Watches for ChampionBanner mounting to instantly silence audio
+    // 4. Mutation Observer: Watches for ChampionBanner mounting to instantly silence audio
     const observer = new MutationObserver(() => {
-      // Scan DOM for champion pop-up component hooks safely
       const hasChampionBanner = 
         document.querySelector("[id*='champion']") || 
         document.querySelector("[class*='champion']") || 

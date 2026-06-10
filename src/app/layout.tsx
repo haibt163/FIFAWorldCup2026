@@ -56,7 +56,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col text-gray-900 font-sans relative">
+      <body className="min-h-full flex flex-col text-gray-900 font-sans relative bg-gray-50">
+        {/* Global Fixed Background Layer for both Mobile & Desktop (Bypasses rendering glitches) */}
+        <div 
+          className="fixed inset-0 -z-50 pointer-events-none bg-cover bg-center bg-no-repeat opacity-15"
+          style={{ backgroundImage: "url('/ishowspeed.png')" }}
+        />
+
         <LanguageProvider>
           <ClientLangSetter />
           
