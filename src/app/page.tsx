@@ -93,7 +93,7 @@ export default function Home() {
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
             <span className="text-xs font-medium text-gray-600">
               {language === "en" ? "vibecoded by" : "được vibecode bởi"}{" "}
-              <span className="font-semibold text-gray-900">Maris Filius</span>
+              <span className="font-semibold text-gray-900">MarisFilius on X</span>
             </span>
           </div>
         </div>
