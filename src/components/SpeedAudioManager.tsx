@@ -11,38 +11,30 @@ declare global {
 
 export default function SpeedAudioManager() {
   const playerRef = useRef<any>(null);
-  const hasInteractedRef = useRef<boolean>(false);
   const isPlayingRef = useRef<boolean>(false);
+  const isReadyRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // 1. Capture early interaction instantly at any point during initialization
-    const startPlaybackOnInteraction = () => {
-      hasInteractedRef.current = true;
-      
-      // If player is fully loaded and ready, play instantly on this interaction
-      if (playerRef.current && typeof playerRef.current.playVideo === "function") {
+    const tryPlayVideo = () => {
+      if (isReadyRef.current && playerRef.current && typeof playerRef.current.playVideo === "function") {
         if (!isPlayingRef.current) {
           playerRef.current.playVideo();
-          isPlayingRef.current = true;
-          cleanupInteractionListeners();
         }
       }
     };
 
-    const cleanupInteractionListeners = () => {
-      window.removeEventListener("click", startPlaybackOnInteraction);
-      window.removeEventListener("touchstart", startPlaybackOnInteraction);
-      window.removeEventListener("scroll", startPlaybackOnInteraction);
-      window.removeEventListener("keydown", startPlaybackOnInteraction);
+    const onInteraction = () => {
+      tryPlayVideo();
     };
 
-    // Attach listeners immediately to capture instantaneous engagement
-    window.addEventListener("click", startPlaybackOnInteraction, { capture: true });
-    window.addEventListener("touchstart", startPlaybackOnInteraction, { passive: true, capture: true });
-    window.addEventListener("scroll", startPlaybackOnInteraction, { passive: true, capture: true });
-    window.addEventListener("keydown", startPlaybackOnInteraction, { capture: true });
+    // Attach listeners - 'touchend' and 'pointerdown' are highly reliable on mobile viewports
+    const events = ["click", "touchstart", "touchend", "pointerdown", "keydown"];
+    events.forEach(event => window.addEventListener(event, onInteraction, { passive: true, capture: true }));
 
-    // 2. Load the YouTube IFrame Player API Script dynamically
+    const cleanupInteractionListeners = () => {
+      events.forEach(event => window.removeEventListener(event, onInteraction, { capture: true }));
+    };
+
     if (!window.YT) {
       const tag = document.createElement("script");
       tag.src = "https://www.youtube.com/iframe_api";
@@ -52,35 +44,34 @@ export default function SpeedAudioManager() {
       }
     }
 
-    // 3. Initialize Player when API is ready
     const initPlayer = () => {
       playerRef.current = new window.YT.Player("speed-hidden-player", {
-        height: "1", // Must be 1 to bypass mobile browser blocking policies
-        width: "1",  // Must be 1
-        videoId: "vrY1THC_NQE", // Correct IShowSpeed Track ID
+        height: "10", // 10px bypasses strict mobile invisible-frame blocks
+        width: "10",
+        videoId: "vrY1THC_NQE",
         playerVars: {
           autoplay: 1,
           controls: 0,
           loop: 1,
-          playlist: "vrY1THC_NQE", // Must match videoId to loop correctly
+          playlist: "vrY1THC_NQE", 
           playsinline: 1,
           disablekb: 1,
+          fs: 0,
+          rel: 0,
         },
         events: {
           onReady: () => {
-            // Check if the user interacted with the page while the API script was downloading
-            if (hasInteractedRef.current && playerRef.current && typeof playerRef.current.playVideo === "function") {
-              playerRef.current.playVideo();
-              isPlayingRef.current = true;
-              cleanupInteractionListeners();
-            }
+            isReadyRef.current = true;
+            // Attempt autoplay immediately; if browser blocks it, the interaction listeners will catch the user's next tap.
+            playerRef.current.playVideo();
           },
           onStateChange: (event: any) => {
-            // Re-trigger if browser security forcefully paused or unstarted the playback state
-            if ((event.data === window.YT.PlayerState.UNSTARTED || event.data === window.YT.PlayerState.PAUSED) && hasInteractedRef.current && !isPlayingRef.current) {
-              playerRef.current.playVideo();
+            // Only clean up interaction listeners once playback is fully verified
+            if (event.data === window.YT.PlayerState.PLAYING) {
               isPlayingRef.current = true;
               cleanupInteractionListeners();
+            } else if (event.data === window.YT.PlayerState.PAUSED || event.data === window.YT.PlayerState.UNSTARTED) {
+              isPlayingRef.current = false;
             }
           }
         },
@@ -93,7 +84,6 @@ export default function SpeedAudioManager() {
       window.onYouTubeIframeAPIReady = initPlayer;
     }
 
-    // 4. Mutation Observer: Watches for ChampionBanner mounting to instantly silence audio
     const observer = new MutationObserver(() => {
       const hasChampionBanner = 
         document.querySelector("[id*='champion']") || 
@@ -102,6 +92,7 @@ export default function SpeedAudioManager() {
         
       if (hasChampionBanner && playerRef.current && typeof playerRef.current.pauseVideo === "function") {
         playerRef.current.pauseVideo();
+        isPlayingRef.current = false;
       }
     });
 
@@ -120,7 +111,7 @@ export default function SpeedAudioManager() {
   }, []);
 
   return (
-    <div style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0.01, pointerEvents: 'none', overflow: 'hidden' }}>
+    <div style={{ position: 'absolute', top: '-9999px', left: '-9999px', width: '10px', height: '10px', opacity: 0.01, pointerEvents: 'none', overflow: 'hidden' }}>
       <div id="speed-hidden-player" />
     </div>
   );

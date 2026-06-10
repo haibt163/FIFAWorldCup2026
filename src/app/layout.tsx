@@ -55,8 +55,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col text-gray-900 font-sans relative bg-gray-50">
+    <html lang="en" className={`${inter.variable} h-full antialiased`} style={{ colorScheme: 'light' }}>
+      <body className="min-h-full flex flex-col text-gray-900 font-sans relative bg-gray-50 dark:bg-gray-50">
         {/* Global Fixed Background Layer for both Mobile & Desktop (Bypasses rendering glitches) */}
         <div 
           className="fixed inset-0 -z-50 pointer-events-none bg-cover bg-center bg-no-repeat opacity-15"

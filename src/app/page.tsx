@@ -12,7 +12,7 @@ export default function Home() {
   const { language, setLanguage } = useLanguage();
   const [groupStandings, setGroupStandings] = useState<Record<string, Team[]>>({});
   const [bestThirds, setBestThirds] = useState<Team[]>([]);
-  const [champion, setChampion] = useState<Team | null>(null); // Track the champion
+  const [champion, setChampion] = useState<Team | null>(null);
 
   const handleGroupPredict = useCallback((predictions: Record<string, Team[]>) => {
     setGroupStandings(predictions);
@@ -33,7 +33,6 @@ export default function Home() {
   });
 
   return (
-    // Changed bg-white to bg-transparent to allow the background wallpaper to stay visible
     <div className="min-h-screen flex flex-col bg-transparent transition-colors duration-300">
       <header className="bg-white/90 backdrop-blur-sm border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
@@ -43,7 +42,6 @@ export default function Home() {
               FIFA WORLD CUP 2026 <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
             </h1>
           </div>
-          {/* Restored Language Translation Toggle Button */}
           <button
             onClick={() => setLanguage(language === "en" ? "vi" : "en")}
             className="text-sm font-sans font-bold border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 text-gray-700 transition-colors"
@@ -104,7 +102,6 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Champion Banner - shows when champion is selected */}
       <ChampionBanner champion={champion} />
     </div>
   );
