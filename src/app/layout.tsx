@@ -3,6 +3,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { LanguageProvider } from "../context/LanguageContext";
 import ClientLangSetter from "@/components/ClientLangSetter";
+import Script from "next/script";
+import SpeedAudioManager from "@/components/SpeedAudioManager";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -13,7 +15,7 @@ export const metadata: Metadata = {
   title: "FIFA World Cup 2026 Predictor - Predict your champion!",
   description: "Interactive bilingual World Cup 2026 predictor dashboard. Simulate groups, third-place rankings, and the entire knockout bracket with ease on mobile and desktop.",
   keywords: "FIFA World Cup 2026, World Cup Predictor, World Cup Simulator, Football Predictor, Soccer Simulator, World Cup Bracket, World Cup 2026 Groups",
-  author: "VibeCode / [Your Name]",
+  author: "VibeCode / Bui Thanh Hai",
   alternates: {
     canonical: "https://fifamundial2026.vercel.app/",
   },
@@ -40,7 +42,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    site: "@yourtwitterhandle", // Optional: your Twitter handle
+    site: "@yourtwitterhandle",
     title: "FIFA World Cup 2026 Predictor - Predict your champion!",
     description: "Interactive bilingual World Cup 2026 predictor dashboard. Simulate groups, third-place rankings, and the entire knockout bracket with ease.",
     images: ["/og-image.png"],
@@ -54,9 +56,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col bg-white text-gray-900 font-sans">
+      <body className="min-h-full flex flex-col text-gray-900 font-sans relative">
         <LanguageProvider>
           <ClientLangSetter />
+          
+          <SpeedAudioManager /> 
+          
           {children}
         </LanguageProvider>
       </body>

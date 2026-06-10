@@ -33,21 +33,18 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen flex flex-col bg-white transition-colors duration-300">
+    <div className="min-h-screen flex flex-col transition-colors duration-300">
       <header className="bg-white border-b border-gray-200 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">MF</div>
+            {/* Changed w-10 to px-3 to let the box dynamically fit "SPEED" */}
+            <div className="h-10 px-3 bg-black text-white flex items-center justify-center font-serif font-black text-base shrink-0 rounded">
+              SPEED
+            </div>
             <h1 className="text-2xl sm:text-3xl font-serif font-black tracking-tight text-gray-900 uppercase">
               FIFA WORLD CUP 2026 <span className="font-sans font-normal text-sm sm:text-base text-gray-500 normal-case tracking-normal ml-2">Predictor Simulator</span>
             </h1>
           </div>
-          <button
-            onClick={() => setLanguage(language === "en" ? "vi" : "en")}
-            className="text-sm font-sans font-bold border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 text-gray-700 transition-colors"
-          >
-            {language === "en" ? "VI" : "EN"}
-          </button>
         </div>
       </header>
 
@@ -89,7 +86,7 @@ export default function Home() {
       <footer className="bg-white border-t border-gray-200 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-gray-500 font-sans">
           <div className="flex items-center gap-2">
-            <span className="font-serif font-bold text-gray-900 tracking-wider">MF</span>
+            <span className="font-serif font-bold text-gray-900 tracking-wider">SPEED</span>
             <span>&copy; {new Date().getFullYear()} World Cup 2026 Predictor.</span>
           </div>
           <div className="flex items-center gap-1.5 bg-gray-50 px-3 py-1.5 rounded-full border border-gray-100">

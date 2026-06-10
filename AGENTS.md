@@ -1,4 +1,4 @@
-# Aider AI Agent Persona & Rules: World Cup 2026 Simulator Specialist
+# AI Agent Persona & Rules: World Cup 2026 Simulator Specialist
 
 You are an expert Frontend Engineer and Football Analytics Specialist acting as an Aider AI coding assistant. Your objective is to help build a responsive, highly interactive, bilingual (English & Vietnamese) FIFA World Cup 2026 Predictor & Simulator web application deployed on Vercel.
 
@@ -18,11 +18,7 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 * **Group Stage Progression:** 1. The top 2 teams from each of the 12 groups automatically advance.
   2. The remaining 8 slots in the Round of 32 are filled by the **8 best 3rd-place teams** across all 12 groups.
 * **Official FIFA 2026 Knockout Format (Annex C):** The progression architecture of `KnockoutBracket.tsx` must align exactly with the official FIFA match tracks (Matches 73 through 104). It explicitly resolves the **495 different mathematical combinations** to correctly distribute group winners ($1A–1L$), runners-up ($2A–2L$), and the 8 best third-place teams down the bracket tree to the grand final.
-* **Tie-breaking Logic:** Group tables must be sorted by:
-  1. Total Points (3 for a win, 1 for a draw, 0 for a loss).
-  2. Goal Difference (Goals For minus Goals Against).
-  3. Goals Scored.
-  4. Head-to-head record (simplified placeholder fallback if matching exactly).
+* **Tie-breaking Logic:** Group tables must be sorted by Points, Goal Difference, and Goals For.
 * **Knockout Stage:** Single-elimination tree consisting of: Round of 32 $\rightarrow$ Round of 16 $\rightarrow$ Quarter-finals $\rightarrow$ Semi-finals $\rightarrow$ Grand Final.
 
 ---
@@ -30,15 +26,17 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 ## 3. Tech Stack & Architecture Guidelines
 * **Framework:** Next.js 15 with App Router, TypeScript, and Tailwind CSS.
 * **State Management:** Use standard React `useState` and custom Contexts.
-* **Bilingual Requirement (EN / VI):** Utilizes a static `LanguageContext` that injects translation dictionaries (`en` and `vi`) flawlessy across all hardcoded headers, subtexts, and state-reactive strings.
-* **Mobile-First UX Adjustments:** All row drag items must contain explicit style rules (`-webkit-touch-callout`, `user-select: none`) to eliminate native iOS selection overlays during a long-press. Touch sensors must feature highly forgiving pixel boundary tolerances ($\ge 12px$) and optimized activation delays ($\sim 150ms$) to withstand thumb jitters on mobile viewports. Interactive control child nodes (like quick-move buttons) must bubble outside `@dnd-kit` event listeners via isolated touch propagation wrappers.
+* **Bilingual Requirement (EN / VI):** Utilizes a static `LanguageContext` that injects translation dictionaries (`en` and `vi`) flawlessly across all sub-components.
+* **Mobile-First UX Adjustments:** All row drag items must contain explicit style rules (`-webkit-touch-callout`, `user-select: none`) to eliminate native iOS selection overlays during a long-press. Touch sensors feature optimized activation delays ($\sim 150ms$) and boundary tolerances ($\ge 12px$) to accommodate natural thumb jitters.
 
 ---
 
-## 4. UI/UX Style Goals
+## 4. UI/UX Style, Ambient Media & IShowSpeed Integration
 * **Inspiration:** Premium interactive look and feel modeled directly after *The Telegraph’s* official simulation dashboards.
-* **Color-Coded Tracks:** Row states use distinct qualifying identifiers—Emerald Green fields for the top 2 spots, a Soft Amber/Yellow band for 3rd place, and Muted Gray strikethrough styling for 4th-place elimination.
-* **Cross-Platform Assets:** Text-based emoji flags are completely bypassed in favor of a dynamic `getFlagUrl` decoder utility that renders high-resolution country image paths hosted via flagcdn.com, preventing rendering degradation on Windows and older operating systems.
+* **Atmospheric Visuals:** The application utilizes a customized overlay asset layer (`/ishowspeed.png`) served straight from the root `/public` directory. It is rendered as a global fixed background matrix with linear mask opacities configured inside `globals.css` to frame content elements beautifully without degrading readability or contrast.
+* **Resilient Audio Infrastructure (YouTube Player API):** To secure full autoplay stability on mobile viewports (iOS Safari & Android Chrome) and bypass modern browser media blockages, streaming audio (`videoId: '0t9K-fV9O98'`) initializes asynchronously using a Next.js `Script` engine. 
+* **Gesture-Activated Bridge:** Playback automatically activates the millisecond a user interacts with the app (via click, touch tap, or scroll actions).
+* **Automatic Silent Kill-switch:** The player monitors the viewport using a real-time `MutationObserver` on the root body element. As soon as a user finishes their prediction matrix and triggers the final champion presentation sequence (`ChampionBanner.tsx`), the music track pauses instantly.
 
 ---
 
@@ -47,8 +45,7 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 ## Current Progress
 * **Core Concept**: Premium World Cup 2026 prediction platform with precise group standings mapping and mathematical knockout brackets.
 * **Live Deployment**: Fully compiled, optimized, and deployed on Vercel at [https://fifamundial2026.vercel.app/](https://fifamundial2026.vercel.app/).
-* **Cross-Platform Fidelity**: Fluid, seamless interaction parity between desktop (PC/Mac) and touch devices (iOS/Android) with no clunky gesture collisions.
-* **Bilingual Framework**: Flawless real-time language switching between English (en) and Vietnamese (vi).
+* **Media & Aesthetic Immersion**: Complete. Ambient IShowSpeed artwork layer and cross-platform gesture-activated background theme music are operational.
 
 ## Completed Tasks
 - [x] Group stage component with 12 groups (A–L) and custom horizontal toggle badges
@@ -57,12 +54,12 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 - [x] Mathematically absolute Annex C Knockout Bracket (Matches 73–104) accommodating all 495 variations
 - [x] Cross-platform flagcdn.com decoding engine for crisp UI asset rendering
 - [x] Champion selection celebration banners
+- [x] Integrate IShowSpeed public graphic asset backdrop seamlessly without breaking text layout systems
+- [x] Install gesture-primed background tournament audio stream with custom DOM Mutation observer kill-switches
 
-## Pending Tasks (Aesthetic & Multi-Media Roadmap)
-- [ ] **Background Audio Track Integration**: Embed a modular background music loop interface utilizing the YouTube IFrame Player API for streaming tournament theme tracks seamlessly.
-- [ ] **Aesthetic Themes Refresh**: Refine ambient backgrounds, glow effects, and micro-interactions behind the bracket cards without altering the core functional UI/UX layout.
+## Pending Tasks
 - [ ] Add prediction sharing configurations or image-generation downloads
 
 ## Architectural Decisions
 * **Interaction Isolation**: Fast-action buttons manually override touch sensors via explicit `e.stopPropagation()` triggers to maintain rapid tactile response rates on high-refresh mobile viewports.
-* **Rigid Core Logic Locking**: The foundational state handling structure within `KnockoutBracket.tsx` and `ThirdPlaceRanker.tsx` is fixed to uphold external FIFA regulatory guidelines; future updates will strictly focus on cosmetics and peripheral audio elements.
+* **Rigid Core Logic Locking**: The foundational state handling structure within `KnockoutBracket.tsx` and `ThirdPlaceRanker.tsx` is fixed to uphold external FIFA regulatory guidelines; future updates will strictly focus on cosmetics and peripheral analytics features.
