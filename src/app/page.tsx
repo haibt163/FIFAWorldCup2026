@@ -46,7 +46,7 @@ export default function Home() {
             onClick={() => setLanguage(language === "en" ? "vi" : "en")}
             className="text-sm font-sans font-bold border border-gray-300 rounded-lg px-4 py-2 hover:bg-gray-50 text-gray-700 transition-colors"
           >
-            {language === "en" ? "VN" : "EN"}
+            {language === "en" ? "VI" : "EN"}
           </button>
         </div>
       </header>

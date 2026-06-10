@@ -17,6 +17,7 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 * **Structure:** 48 teams divided into 12 groups (labeled Group A through Group L), with 4 teams per group.
 * **Group Stage Progression:** 1. The top 2 teams from each of the 12 groups automatically advance.
   2. The remaining 8 slots in the Round of 32 are filled by the **8 best 3rd-place teams** across all 12 groups.
+* **Official FIFA 2026 Knockout Format (Annex C):** The progression architecture of `KnockoutBracket.tsx` must align exactly with the official FIFA match tracks (Matches 73 through 104). It explicitly resolves the **495 different mathematical combinations** to correctly distribute group winners ($1A–1L$), runners-up ($2A–2L$), and the 8 best third-place teams down the bracket tree to the grand final.
 * **Tie-breaking Logic:** Group tables must be sorted by:
   1. Total Points (3 for a win, 1 for a draw, 0 for a loss).
   2. Goal Difference (Goals For minus Goals Against).
@@ -28,78 +29,40 @@ You must strictly enforce the real-world 2026 tournament mechanics within the ap
 
 ## 3. Tech Stack & Architecture Guidelines
 * **Framework:** Next.js 15 with App Router, TypeScript, and Tailwind CSS.
-* **State Management:** Use standard React `useState` and custom Contexts. Do not install heavy external state libraries (like Redux or Zustand) unless explicitly asked.
-* **Bilingual Requirement (EN / VI):** * Do not use complex external i18n compilation frameworks. Instead, utilize a simple `LanguageContext` that injects static translation dictionaries (`en` and `vi`).
-  * Ensure every UI string, button text, table header, and round name correctly tracks the active language state.
+* **State Management:** Use standard React `useState` and custom Contexts.
+* **Bilingual Requirement (EN / VI):** Utilizes a static `LanguageContext` that injects translation dictionaries (`en` and `vi`) flawlessy across all hardcoded headers, subtexts, and state-reactive strings.
+* **Mobile-First UX Adjustments:** All row drag items must contain explicit style rules (`-webkit-touch-callout`, `user-select: none`) to eliminate native iOS selection overlays during a long-press. Touch sensors must feature highly forgiving pixel boundary tolerances ($\ge 12px$) and optimized activation delays ($\sim 150ms$) to withstand thumb jitters on mobile viewports. Interactive control child nodes (like quick-move buttons) must bubble outside `@dnd-kit` event listeners via isolated touch propagation wrappers.
 
 ---
 
 ## 4. UI/UX Style Goals
-* **Inspiration:** Look and feel should mimic high-end interactive dashboards like the Telegraph's simulator. Use clean, compact cards for group stages and a traditional sweeping horizontal or vertical tree layout for the knockout brackets.
-* **Themes:** Dark-mode friendly, sport-centric UI using vibrant team flag indicators (or clean emoji fallbacks) and crisp typography.
-* **UX Flow:** The Knockout Stage component should remain locked, hidden, or visually deactivated until all group stage matches have either been manually simulated by the user or auto-completed via a "Simulate All" algorithm.
+* **Inspiration:** Premium interactive look and feel modeled directly after *The Telegraph’s* official simulation dashboards.
+* **Color-Coded Tracks:** Row states use distinct qualifying identifiers—Emerald Green fields for the top 2 spots, a Soft Amber/Yellow band for 3rd place, and Muted Gray strikethrough styling for 4th-place elimination.
+* **Cross-Platform Assets:** Text-based emoji flags are completely bypassed in favor of a dynamic `getFlagUrl` decoder utility that renders high-resolution country image paths hosted via flagcdn.com, preventing rendering degradation on Windows and older operating systems.
 
 ---
 
-## 5. Interaction Protocol with User
-* Be concise. Do not explain the history of Next.js or Tailwind in your chat responses. Focus exclusively on the code generation and execution steps.
-* If a generated file truncates halfway through due to API token limits, wait for the user's prompt, acknowledge the cut-off point, and pick up exactly where the syntax broke.
-
----
-
-# Project Status: World Cup 2026 Simulator
+# Project Status: World Cup 2026 Predictor App
 
 ## Current Progress
-- **Core Concept**: A World Cup 2026 tournament simulator with group stage and knockout bracket predictions.
-- **Architecture**:
-    - **Frontend**: Next.js 15 with App Router, React Server Components
-    - **State Management**: React hooks with localStorage persistence
-    - **Language**: Bilingual support (English/Vietnamese) via context
-    - **Simulation**: Client-side match simulation with team strength ratings
-- **Implemented Features**:
-    - Group stage with 12 groups (A-L), 48 teams
-    - Match simulation with random goal generation
-    - Group standings calculation (points, goal difference, wins)
-    - Top 2 teams + best 3rd place qualifiers (32 teams total)
-    - Interactive knockout bracket (Round of 32 → Final)
-    - Champion prediction banner
-    - Dark/light mode support
-    - Language toggle
+* **Core Concept**: Premium World Cup 2026 prediction platform with precise group standings mapping and mathematical knockout brackets.
+* **Live Deployment**: Fully compiled, optimized, and deployed on Vercel at [https://fifamundial2026.vercel.app/](https://fifamundial2026.vercel.app/).
+* **Cross-Platform Fidelity**: Fluid, seamless interaction parity between desktop (PC/Mac) and touch devices (iOS/Android) with no clunky gesture collisions.
+* **Bilingual Framework**: Flawless real-time language switching between English (en) and Vietnamese (vi).
 
 ## Completed Tasks
-- [x] Group stage component with team cards
-- [x] Match simulation logic
-- [x] Group standings calculation
-- [x] Knockout bracket component
-- [x] Language context and translations
-- [x] Responsive design with Tailwind CSS
-- [x] Dark mode support
-- [x] Champion banner display
-- [x] useLanguage hook consistency fix
-- [x] Performance optimization with useCallback
+- [x] Group stage component with 12 groups (A–L) and custom horizontal toggle badges
+- [x] Smooth drag-and-drop mobile sensor configurations with text-selection protection
+- [x] Comprehensive 3rd-Place Ranker tracking board enforcing strict 8-team validation constraints
+- [x] Mathematically absolute Annex C Knockout Bracket (Matches 73–104) accommodating all 495 variations
+- [x] Cross-platform flagcdn.com decoding engine for crisp UI asset rendering
+- [x] Champion selection celebration banners
 
-## Pending Tasks
-- [ ] Add match history display
-- [ ] Implement team statistics visualization
-- [ ] Add share functionality for predictions
-- [ ] Add unit tests for simulator functions
-
-## Deployment Readiness (Vercel)
-
-### ✅ Ready for Deployment
-- No `NEXT_PUBLIC_` secrets exposed
-- No Node.js APIs in edge runtime
-- No large bundle dependencies
-- Static site compatible
-- No database connections required
-
-### ⚠️ Recommendations
-- Add `vercel.json` for custom redirects if needed
-- Consider adding `revalidate` for ISR if data becomes dynamic
-- Add error boundaries for robustness
+## Pending Tasks (Aesthetic & Multi-Media Roadmap)
+- [ ] **Background Audio Track Integration**: Embed a modular background music loop interface utilizing the YouTube IFrame Player API for streaming tournament theme tracks seamlessly.
+- [ ] **Aesthetic Themes Refresh**: Refine ambient backgrounds, glow effects, and micro-interactions behind the bracket cards without altering the core functional UI/UX layout.
+- [ ] Add prediction sharing configurations or image-generation downloads
 
 ## Architectural Decisions
-- **Recursive Decomposition**: N/A (not an AI task management system)
-- **State-Driven Execution**: React state for simulation results
-- **LLM-Driven Planning**: N/A (static team data)
-- **Client-Side Simulation**: All match logic runs in browser for instant results
+* **Interaction Isolation**: Fast-action buttons manually override touch sensors via explicit `e.stopPropagation()` triggers to maintain rapid tactile response rates on high-refresh mobile viewports.
+* **Rigid Core Logic Locking**: The foundational state handling structure within `KnockoutBracket.tsx` and `ThirdPlaceRanker.tsx` is fixed to uphold external FIFA regulatory guidelines; future updates will strictly focus on cosmetics and peripheral audio elements.
